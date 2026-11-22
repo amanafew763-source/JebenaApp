@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jebena Express</title>
+<meta name="description" content="Send items between Addis Ababa and the diaspora with travelers who have spare room in their luggage.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Noto+Sans+Ethiopic:wght@500;600&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="tilet" aria-hidden="true"></div>
+<header class="topbar" id="topbar">
+  <div class="wrap topbar-inner">
+    <a class="brand" href="#home" aria-label="Jebena Express home" data-i18n-aria="brand.aria">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32"><circle cx="18" cy="21" r="8" fill="#fff"/><rect x="15.6" y="6" width="4.8" height="9" rx="2" fill="#fff"/><path d="M11.5 18 L5 11.5" stroke="#fff" stroke-width="3" stroke-linecap="round"/><rect x="14.6" y="4" width="6.8" height="3" rx="1.5" fill="#dca843"/></svg>
+      </span>
+      <span class="brand-name">Jebena Express</span>
+    </a>
+    <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="nav" aria-label="Open menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+    <nav class="nav" id="nav" data-open="false">
+      <a href="#home" data-link="home" data-i18n="nav.home">Home</a>
+      <a href="#about" data-link="about" data-i18n="nav.about">About Us</a>
+      <a href="#contact" data-link="contact" data-i18n="nav.contact">Contact</a>
+      <a href="#admin" data-link="admin" id="adminLink" data-i18n="nav.admin" hidden>Admin</a>
+      <div class="lang" role="group" aria-label="Language" data-i18n-aria="lang.label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+        <button type="button" data-lang="en" aria-pressed="true" lang="en" aria-label="English">EN</button>
+        <button type="button" data-lang="de" aria-pressed="false" lang="de" aria-label="Deutsch">DE</button>
+      </div>
+      <button class="btn btn-primary btn-sm login-btn" id="loginBtn" type="button">Login</button>
+    </nav>
+  </div>
+</header>
+<div class="sysbar" id="sysbar" hidden></div>
+
+<main>
+  <!-- ============ HOME ============ -->
+  <section id="home" class="hero" aria-labelledby="home-title">
+    <div class="wrap">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <span class="pill"><span class="geez" lang="am">ወደ ቤት</span><span data-i18n="hero.pill">Send it home</span></span>
+          <h1 id="home-title" data-i18n-html="hero.title">Your package, in a suitcase <em>already going home.</em></h1>
+          <p class="lead" data-i18n="hero.lead">Jebena Express matches people sending items between Addis Ababa and the diaspora with travelers who have spare room in their luggage. You agree on the fee up front, and the item is picked up in person.</p>
+
+          <form class="book" id="bookForm" novalidate>
+            <div class="book-tabs" role="tablist" aria-label="I want to" data-i18n-aria="hero.tabsLabel">
+              <button type="button" role="tab" id="tabSend" aria-selected="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg><span data-i18n="hero.tabSend">Get something carried</span></button>
+              <button type="button" role="tab" id="tabTravel" aria-selected="false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg><span data-i18n="hero.tabTravel">I'm traveling</span></button>
+            </div>
+            <div class="route-row">
+              <div class="book-field" id="cityField">
+                <label for="h-city" id="h-city-label">From</label>
+                <input id="h-city" placeholder="e.g. Frankfurt" data-i18n-ph="hero.cityPh" autocomplete="address-level2">
+              </div>
+              <button type="button" class="swap" id="swapBtn" aria-label="Swap direction" data-i18n-aria="hero.swap" style="order:2">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4L3 8l4 4"/><path d="M3 8h13"/><path d="M17 20l4-4-4-4"/><path d="M21 16H8"/></svg>
+              </button>
+              <div class="book-field fixed" id="addisField">
+                <span class="lbl" id="addisLabel">To</span>
+                <b data-i18n="place.addis">Addis Ababa</b>
+                <small>ADD · Bole</small>
+              </div>
+            </div>
+            <div class="book-row what-row">
+              <div class="book-field">
+                <label for="h-what" id="h-what-label">What are you sending?</label>
+                <input id="h-what" placeholder="e.g. 2 kg of clothes" autocomplete="off">
+              </div>
+              <button class="btn btn-primary" type="submit" id="bookBtn">Find a traveler</button>
+            </div>
+            <p class="book-err" id="bookErr" role="alert" hidden></p>
+          </form>
+
+          <div class="trust">
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span data-i18n="trust.1">Fee agreed before handover</span></span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span data-i18n="trust.2">Travelers inspect every item</span></span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span data-i18n="trust.3">Picked up in person</span></span>
+          </div>
+        </div>
+
+        <div class="hero-visual" aria-label="Example: a traveler flying from Washington to Addis Ababa with space for a package" data-i18n-aria="hero.visualAria">
+          <div class="mesob-panel">
+            <div class="pass">
+              <div class="pass-top">
+                <div class="pass-head"><span>Jebena Express</span><span class="tag" data-i18n="pass.example">Example trip</span></div>
+                <div class="route">
+                  <div><b>IAD</b><small>Washington Dulles</small></div>
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" transform="rotate(90 12 12)"/></svg>
+                  <div class="to"><b>ADD</b><small data-i18n="pass.addAirport">Addis Ababa Bole</small></div>
+                </div>
+              </div>
+              <div class="pass-cut" aria-hidden="true"></div>
+              <div class="pass-bot">
+                <div><span data-i18n="pass.traveler">Traveler</span><b>Dawit B.</b></div>
+                <div><span data-i18n="pass.flying">Flying</span><b data-i18n="pass.date">Nov 14</b></div>
+                <div><span data-i18n="pass.space">Space free</span><b>8 kg</b></div>
+                <div><span data-i18n="pass.pickup">Pickup</span><b>Bole</b></div>
+                <div class="pass-geez"><span lang="am">መልካም ጉዞ</span> · <span data-i18n="pass.geez">Have a good trip</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="float float-1" aria-hidden="true">
+            <span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+            <span><b data-i18n="float.matched">Matched</b><span data-i18n="float.matchedSub">Selam's 2 kg box</span></span>
+          </div>
+          <div class="float float-2" aria-hidden="true">
+            <span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+            <span><b data-i18n="float.picked">Picked up</b><span data-i18n="float.pickedSub">Her mother, in Addis</span></span>
+          </div>
+        </div>
+      </div>
+
+      <p class="route-note"><span class="live-dot" aria-hidden="true"></span><span data-i18n-html="routeNote">Now serving one route: <b>Addis Ababa ⇄ the diaspora</b>, in both directions.</span></p>
+    </div>
+  </section>
+
+  <!-- ============ ABOUT / HOW IT WORKS ============ -->
+  <section id="about" class="section section-alt" aria-labelledby="about-title">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="about.eyebrow">About us</span>
+        <h2 id="about-title" data-i18n="about.title">How it works</h2>
+        <p class="lead" data-i18n="about.lead">Shipping a box between Addis Ababa and Washington, London or Frankfurt can cost more than what's inside it and take weeks. Meanwhile, people fly that route every day with half-empty suitcases. We put the two together.</p>
+      </div>
+      <div class="how-grid">
+        <div class="how-visual" aria-hidden="true">
+          <svg viewBox="0 0 400 540" id="scene" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <radialGradient id="clayGrad" cx="38%" cy="35%" r="70%">
+                <stop offset="0" stop-color="#b8693f"/><stop offset=".55" stop-color="#8c4a2c"/><stop offset="1" stop-color="#4f2615"/>
+              </radialGradient>
+              <linearGradient id="neckGrad" x1="0" x2="1">
+                <stop offset="0" stop-color="#5e2e1a"/><stop offset=".4" stop-color="#a65d36"/><stop offset="1" stop-color="#5a2c18"/>
+              </linearGradient>
+              <linearGradient id="coffeeGrad" x1="0" x2="1">
+                <stop offset="0" stop-color="#2a140a"/><stop offset=".5" stop-color="#5a2f17"/><stop offset="1" stop-color="#2a140a"/>
+              </linearGradient>
+              <clipPath id="cupClip"><path d="M48 452 L132 452 L122 506 Q90 514 58 506 Z"/></clipPath>
+            </defs>
+            <ellipse cx="200" cy="522" rx="190" ry="14" fill="#3a2418"/>
+            <ellipse cx="200" cy="518" rx="180" ry="10" fill="#6b4630"/>
+            <path id="stream" d="" fill="none" stroke="url(#coffeeGrad)" stroke-width="7" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/>
+            <g id="drops" fill="#4a250f"></g>
+            <g id="cup">
+              <g class="steam" id="steam">
+                <path d="M78 440 q-8 -14 0 -26 q8 -12 0 -24"/><path d="M92 440 q-8 -14 0 -26 q8 -12 0 -24"/><path d="M106 440 q-8 -14 0 -26 q8 -12 0 -24"/>
+              </g>
+              <ellipse cx="90" cy="512" rx="30" ry="5" fill="#2a1a12"/>
+              <path d="M48 452 L132 452 L122 506 Q90 514 58 506 Z" fill="#f7efe2" stroke="#d9cbb5" stroke-width="1.5"/>
+              <g clip-path="url(#cupClip)">
+                <rect id="cupFill" x="40" y="512" width="100" height="70" fill="#3b1d0c"/>
+                <rect id="crema" x="40" y="510" width="100" height="4" fill="#9a5c2e"/>
+              </g>
+              <path d="M52 472 L128 472" stroke="#0f7a55" stroke-width="3"/>
+              <path d="M53 478 L127 478" stroke="#b8402f" stroke-width="2"/>
+            </g>
+            <g id="jebena">
+              <path d="M200 268 C176 252 150 222 128 186 L118 172 L132 166 L144 182 C162 210 186 236 214 248 Z" fill="url(#neckGrad)"/>
+              <ellipse cx="124" cy="170" rx="9" ry="5" transform="rotate(-38 124 170)" fill="#3e1d0e"/>
+              <path d="M296 128 C346 132 352 196 324 268" fill="none" stroke="#6f361d" stroke-width="15" stroke-linecap="round"/>
+              <path d="M296 128 C346 132 352 196 324 268" fill="none" stroke="#a45a34" stroke-width="5" stroke-linecap="round" opacity=".6"/>
+              <path d="M252 90 L288 90 L294 210 L246 210 Z" fill="url(#neckGrad)"/>
+              <rect x="244" y="80" width="52" height="14" rx="6" fill="#6f361d"/>
+              <path d="M258 82 C256 64 262 52 270 44 C278 52 284 64 282 82 Z" fill="#c99a4b"/>
+              <path d="M262 80 L266 54 M270 80 L270 48 M278 80 L274 54" stroke="#8f6a2c" stroke-width="2"/>
+              <circle cx="270" cy="282" r="86" fill="url(#clayGrad)"/>
+              <path d="M190 252 Q270 236 350 252" fill="none" stroke="#dca843" stroke-width="3" opacity=".85"/>
+              <path d="M192 262 L204 252 L216 262 L228 252 L240 262 L252 252 L264 262 L276 252 L288 262 L300 252 L312 262 L324 252 L336 262 L348 254" fill="none" stroke="#dca843" stroke-width="2" opacity=".7"/>
+              <ellipse cx="236" cy="246" rx="22" ry="12" fill="#fff" opacity=".14" transform="rotate(-30 236 246)"/>
+              <ellipse cx="270" cy="366" rx="34" ry="8" fill="#4a2414"/>
+            </g>
+          </svg>
+          <div class="how-caption"><span><b id="howStepLabel">Step 1 of 3</b> <span class="muted" id="howStepName">· Post your item</span></span><span class="meter"><i id="howMeter"></i></span></div>
+        </div>
+
+        <div class="steps" id="steps">
+          <article class="step on">
+            <span class="num">1</span>
+            <h3 data-i18n="step1.title">Post your item</h3>
+            <p data-i18n="step1.text">Tell us what you're sending, roughly how much it weighs, and whether it's going to Addis Ababa or coming from it. A phone for your father, school supplies, coffee and berbere for your sister abroad: if it's allowed through customs, it can go.</p>
+          </article>
+          <article class="step">
+            <span class="num">2</span>
+            <h3 data-i18n="step2.title">Get matched with a traveler</h3>
+            <p data-i18n="step2.text">We pair you with someone already flying that route. You agree on the fee before anything changes hands, and the traveler can open and inspect the item before it goes in their suitcase.</p>
+          </article>
+          <article class="step">
+            <span class="num">3</span>
+            <h3 data-i18n="step3.title">Picked up in person</h3>
+            <p data-i18n="step3.text">The traveler lands and the recipient collects the item in person, whether that's your mother in Addis Ababa or you in Frankfurt. Like the first cup of buna poured for a guest, it arrives by hand.</p>
+          </article>
+        </div>
+      </div>
+
+      <div class="audience">
+        <article class="aud send">
+          <span class="badge" data-i18n="aud.send.badge">For senders</span>
+          <h3 data-i18n="aud.send.title">Send one item, or book a whole bag</h3>
+          <ul class="ticks">
+            <li data-i18n="aud.send.1">Send a single item, like medicine, a phone or school supplies.</li>
+            <li data-i18n="aud.send.2">Book a traveler's whole bag: you cover the airline's checked-bag fee plus the traveler's fee.</li>
+            <li data-i18n-html="aud.send.3">Check the <a class="inline-link" href="#items">prohibited items list</a> before you post.</li>
+          </ul>
+        </article>
+        <article class="aud travel">
+          <span class="badge" data-i18n="aud.travel.badge">For travelers</span>
+          <h3 data-i18n="aud.travel.title">Earn from the space you're not using</h3>
+          <ul class="ticks">
+            <li data-i18n="aud.travel.1">List your trip and how much room you have.</li>
+            <li data-i18n="aud.travel.2">Choose which requests to accept. You're never assigned an item you didn't agree to.</li>
+            <li data-i18n="aud.travel.3">Inspect every item before it goes in your suitcase, and refuse anything you're unsure of.</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PROHIBITED ITEMS ============ -->
+  <section id="items" class="section" aria-labelledby="items-title">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="items.eyebrow">Before you pack</span>
+        <h2 id="items-title" data-i18n="items.title">What travelers can't carry</h2>
+        <p class="lead" data-i18n="items.lead">Travelers are personally responsible for everything in their suitcase when they go through customs. These rules protect them and keep your item from being seized at the airport.</p>
+      </div>
+      <div class="rule-grid">
+        <div class="rule-card">
+          <h3><span class="ico no" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span data-i18n="items.never">Never accepted</span></h3>
+          <ul>
+            <li data-i18n="never.1">Weapons, ammunition, and replicas or parts of them</li>
+            <li data-i18n="never.2">Explosives, fireworks, flammable liquids, spray paint and gas canisters</li>
+            <li data-i18n="never.3">Drugs and controlled substances, including khat</li>
+            <li data-i18n="never.4">Counterfeit or pirated goods</li>
+            <li data-i18n="never.5">Ivory and other wildlife products</li>
+            <li data-i18n-html="never.6">Cash, gold and jewelry <small>(our policy: travelers don't carry money or valuables for others)</small></li>
+            <li data-i18n-html="never.7">Sealed packages the traveler can't open and inspect <small>(our policy)</small></li>
+          </ul>
+        </div>
+        <div class="rule-card">
+          <h3><span class="ico care" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M8 4v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="8" cy="12" r="1.2" fill="currentColor"/></svg></span><span data-i18n="items.care">Allowed with care</span></h3>
+          <ul>
+            <li data-i18n-html="care.1"><b>Power banks and spare batteries</b> must go in the traveler's carry-on, never in checked bags.</li>
+            <li data-i18n-html="care.2"><b>Medicine</b> stays in its original packaging with a copy of the prescription.</li>
+            <li data-i18n-html="care.3"><b>Food</b>, including coffee, spices and teff, should be sealed and labeled. Fresh meat, dairy, fruit and plants are often stopped at customs.</li>
+            <li data-i18n-html="care.4"><b>Electronics</b> may need to be declared on arrival, and duty can apply.</li>
+            <li data-i18n-html="care.5"><b>Several of the same new item</b> can look like goods for sale and may be charged import duty.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="panel">
+        <div><h3 data-i18n="rules.title">Ethiopia customs rules</h3><p class="note" data-i18n="rules.sub">The rules depend on which way the item is going. Pick a direction.</p></div>
+        <div class="country-tabs" role="tablist" aria-label="Direction" data-i18n-aria="rules.tabsLabel" id="countryTabs"></div>
+        <div id="countryRules" role="tabpanel" aria-live="polite"></div>
+        <p class="note" data-i18n="rules.note">Rules change and customs officers have the final say. Last checked October 2026. Confirm with the embassy before you travel.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONTACT ============ -->
+  <section id="contact" class="section section-alt" aria-labelledby="contact-title">
+    <div class="wrap contact-grid">
+      <div class="contact-copy">
+        <span class="eyebrow" data-i18n="contact.eyebrow">Contact</span>
+        <h2 id="contact-title" data-i18n="contact.title">Get started</h2>
+        <p class="lead" data-i18n="contact.lead">Tell us what you're sending or where you're flying. We'll get back to you with a match or a question.</p>
+        <dl class="info-list">
+          <dt data-i18n="info.routes">Routes</dt><dd data-i18n="info.routesVal">Addis Ababa ⇄ the diaspora, both directions</dd>
+          <dt data-i18n="info.response">Response</dt><dd data-i18n="info.responseVal">Within 1 business day</dd>
+          <dt data-i18n="info.email">Email</dt><dd>hello@jebenaexpress.example</dd>
+        </dl>
+      </div>
+      <div class="form-card">
+        <form id="contactForm" novalidate>
+          <div class="hp" aria-hidden="true"><label for="c-website">Website</label><input id="c-website" name="website" tabindex="-1" autocomplete="off"></div>
+          <fieldset class="role-seg">
+            <legend data-i18n="form.iam">I am a</legend>
+            <label for="c-role-s"><input type="radio" id="c-role-s" name="role" value="Sender" checked><span data-i18n="form.sending">I need something carried</span></label>
+            <label for="c-role-t"><input type="radio" id="c-role-t" name="role" value="Traveler"><span data-i18n="form.traveling">I'm traveling</span></label>
+          </fieldset>
+          <fieldset class="role-seg">
+            <legend data-i18n="form.dir">Direction</legend>
+            <label for="c-dir-to"><input type="radio" id="c-dir-to" name="dir" value="to" checked><span data-i18n="form.dirTo">To Addis Ababa</span></label>
+            <label for="c-dir-from"><input type="radio" id="c-dir-from" name="dir" value="from"><span data-i18n="form.dirFrom">From Addis Ababa</span></label>
+          </fieldset>
+          <div class="field">
+            <label for="c-city" id="c-city-label">Coming from</label>
+            <input id="c-city" name="city" required autocomplete="address-level2" aria-describedby="cityHint">
+            <span id="cityHint" class="hint" data-i18n="form.cityHint">The city outside Ethiopia where the trip starts or ends.</span>
+          </div>
+          <div id="destAlert" class="alert" role="status" hidden></div>
+
+          <!-- Trip details (travelers) -->
+          <div id="tripFields" class="form-block" hidden>
+            <h4 class="form-sub" data-i18n="form.tripSub">Your trip</h4>
+            <div class="two">
+              <label for="c-flight"><span data-i18n="form.flight">Flight date</span><input id="c-flight" name="flight" type="date"></label>
+              <label for="c-space"><span data-i18n="form.space">Space you can offer (kg)</span><input id="c-space" name="space" type="number" min="0.5" max="100" step="0.5" inputmode="decimal" placeholder="8"></label>
+            </div>
+          </div>
+
+          <!-- Item details (people who need something carried) -->
+          <div id="itemFields" class="form-block">
+            <h4 class="form-sub" data-i18n="form.itemSub">The item</h4>
+            <div class="two">
+              <label for="c-type"><span data-i18n="form.type">What is it?</span>
+                <select id="c-type" name="itype">
+                  <option value="" data-i18n="form.typeChoose">Choose a type</option>
+                  <option value="clothes" data-i18n="type.clothes">Clothes</option>
+                  <option value="medicine" data-i18n="type.medicine">Medicine</option>
+                  <option value="electronics" data-i18n="type.electronics">Electronics</option>
+                  <option value="documents" data-i18n="type.documents">Documents</option>
+                  <option value="food" data-i18n="type.food">Food</option>
+                  <option value="other" data-i18n="type.other">Other</option>
+                </select>
+              </label>
+              <label for="c-weight"><span data-i18n="form.weight">Weight (kg)</span><input id="c-weight" name="weight" type="number" min="0.1" max="100" step="0.1" inputmode="decimal" placeholder="2"></label>
+            </div>
+            <div class="two">
+              <label for="c-ready"><span data-i18n="form.ready">Ready to hand over from</span><input id="c-ready" name="ready" type="date"></label>
+              <label for="c-needed"><span data-i18n="form.needed">Needed by (optional)</span><input id="c-needed" name="needed" type="date"></label>
+            </div>
+            <p class="hint" data-i18n="form.dateHint">Travelers need the item at least one day before their flight.</p>
+            <div class="field">
+              <label for="c-photo" data-i18n="form.photo">Photo of the item</label>
+              <div class="photo-pick">
+                <img id="photoPreview" alt="" hidden>
+                <input id="c-photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif">
+              </div>
+              <span class="hint" data-i18n="form.photoHint">A clear photo helps travelers decide. It's only shown to the traveler we propose your item to.</span>
+            </div>
+            <h4 class="form-sub" id="hoSub">Who hands it over?</h4>
+            <label class="check" for="c-ho-me"><input type="checkbox" id="c-ho-me"><span data-i18n="form.thatsMe">That's me</span></label>
+            <div class="two">
+              <label for="c-ho-name"><span data-i18n="form.name">Name</span><input id="c-ho-name" name="hoName" autocomplete="off"></label>
+              <label for="c-ho-phone"><span data-i18n="form.phone">Phone</span><input id="c-ho-phone" name="hoPhone" type="tel" autocomplete="off" placeholder="+251 911 234567"></label>
+            </div>
+            <h4 class="form-sub" id="puSub">Who picks it up?</h4>
+            <label class="check" for="c-pu-me"><input type="checkbox" id="c-pu-me"><span data-i18n="form.thatsMe">That's me</span></label>
+            <div class="two">
+              <label for="c-pu-name"><span data-i18n="form.name">Name</span><input id="c-pu-name" name="puName" autocomplete="off"></label>
+              <label for="c-pu-phone"><span data-i18n="form.phone">Phone</span><input id="c-pu-phone" name="puPhone" type="tel" autocomplete="off" placeholder="+49 151 2345678"></label>
+            </div>
+          </div>
+
+          <h4 class="form-sub" data-i18n="form.youSub">Your contact details</h4>
+          <div class="three">
+            <label for="c-name"><span data-i18n="form.name">Name</span><input id="c-name" name="name" autocomplete="name" required placeholder="Selam Tesfaye"></label>
+            <label for="c-email"><span data-i18n="form.email">Email</span><input id="c-email" name="email" type="email" autocomplete="email" required placeholder="selam@example.com"></label>
+            <label for="c-phone"><span data-i18n="form.phone">Phone</span><input id="c-phone" name="phone" type="tel" autocomplete="tel" required placeholder="+1 301 555 0123"></label>
+          </div>
+          <label for="c-msg"><span id="msgLabel">Describe the item</span><textarea id="c-msg" name="message" required></textarea></label>
+          <label class="check" for="c-agree"><input type="checkbox" id="c-agree" name="agree"><span id="agreeText"></span></label>
+          <p class="note" id="needAccount" hidden data-i18n="form.needAccount">You'll need a free account to send a request. What you type stays in the form while you log in.</p>
+          <div><button class="btn btn-primary" type="submit" id="contactSubmit" data-i18n="form.submit">Send request</button></div>
+          <div id="contactStatus" class="status" role="status" hidden></div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STATUS PAGE (one request) ============ -->
+  <div id="statusWrap" class="wrap" hidden>
+    <section id="status" class="status-view" aria-live="polite">
+      <a class="back-link" href="#account" id="statusBack" data-i18n="st.back">← My account</a>
+      <div id="statusBody"></div>
+    </section>
+  </div>
+
+  <!-- ============ MY ACCOUNT ============ -->
+  <div id="accountWrap" class="wrap" hidden>
+    <section id="account" class="account" aria-labelledby="account-title">
+      <div class="admin-head">
+        <div class="stack" style="gap:6px">
+          <span class="eyebrow" data-i18n="acct.eyebrow">My account</span>
+          <h2 id="account-title"></h2>
+          <p class="note" id="accountEmail"></p>
+        </div>
+        <div class="admin-actions">
+          <button class="btn btn-ghost btn-sm" type="button" id="changePwBtn" data-i18n="acct.changePw">Change password</button>
+          <button class="btn btn-ghost btn-sm" type="button" id="logoutBtn3" data-i18n="nav.logout">Log out</button>
+        </div>
+      </div>
+      <article class="card">
+        <div class="card-head">
+          <div><h3 data-i18n="acct.myRequests">My requests</h3><p class="sub" data-i18n="acct.myRequestsSub">Requests you've sent, newest first.</p></div>
+          <a class="btn btn-primary btn-sm" href="#contact" data-i18n="acct.new">New request</a>
+        </div>
+        <div id="myRequests" class="my-list"></div>
+      </article>
+    </section>
+  </div>
+
+  <!-- ============ ADMIN ============ -->
+  <div id="adminWrap" class="wrap" hidden>
+    <section id="admin" class="admin" aria-labelledby="admin-title">
+      <div class="admin-head">
+        <div class="stack" style="gap:6px">
+          <span class="eyebrow" data-i18n="admin.eyebrow">Admin</span>
+          <h2 id="admin-title" data-i18n="admin.title">Dashboard</h2>
+          <p class="note" id="adminSub"></p>
+        </div>
+        <div class="admin-actions">
+          <div class="seg" role="group" aria-label="Data source" data-i18n-aria="admin.srcLabel">
+            <button type="button" data-src="sample" aria-pressed="true" data-i18n="admin.sample">Sample data</button>
+            <button type="button" data-src="live" aria-pressed="false" data-i18n="admin.live">Live data</button>
+          </div>
+          <button class="btn btn-ghost btn-sm" type="button" id="logoutBtn2" data-i18n="nav.logout">Log out</button>
+        </div>
+      </div>
+      <p class="banner" id="srcBanner"></p>
+      <div class="kpis" id="kpis"></div>
+      <div class="dash-grid">
+        <article class="card span2">
+          <div><h3 data-i18n="d.visitorsDay">Website visitors per day</h3><p class="sub" data-i18n="d.last30">Last 30 days</p></div>
+          <div class="chart" id="trendVisitors"></div>
+          <div><h3 data-i18n="d.ordersDay">Orders per day</h3><p class="sub" data-i18n="d.last30">Last 30 days</p></div>
+          <div class="chart" id="trendOrders"></div>
+        </article>
+        <article class="card"><div><h3 data-i18n="d.balance">Senders vs. travelers</h3><p class="sub" data-i18n="d.balanceSub">Orders by type</p></div><div id="balance" class="stack" style="gap:14px"></div></article>
+        <article class="card"><div><h3 data-i18n="d.dests">Top routes</h3><p class="sub" data-i18n="d.destsSub">Orders by route</p></div><div id="dests" class="bars"></div></article>
+        <article class="card"><div><h3 data-i18n="d.sources">Traffic sources</h3><p class="sub" data-i18n="d.sourcesSub">Where visitors came from</p></div><div id="sources" class="bars"></div></article>
+        <article class="card"><div><h3 data-i18n="d.location">Visitor location</h3><p class="sub" id="locSub"></p></div><div id="locations" class="bars"></div></article>
+        <article class="card"><div><h3 data-i18n="d.devices">Devices</h3><p class="sub" data-i18n="d.devicesSub">Visitors by device</p></div><div id="devices" class="bars"></div></article>
+        <article class="card span2"><div><h3 data-i18n="d.funnel">Order form funnel</h3><p class="sub" data-i18n="d.funnelSub">Where people drop off before sending an order</p></div><div id="funnel" class="bars"></div></article>
+      </div>
+      <article class="card" id="matchCard">
+        <div class="card-head">
+          <div><h3 data-i18n="m.title">Matching</h3><p class="sub" data-i18n="m.sub">Open trips with sender requests going the same way. The same person can never be matched with themselves.</p></div>
+        </div>
+        <div id="matchMsg" class="status" role="status" hidden></div>
+        <div id="matchBody" class="match-body"></div>
+      </article>
+      <article class="card">
+        <div class="card-head">
+          <div><h3 data-i18n="d.orders">Orders</h3><p class="sub" id="ordersSub"></p></div>
+          <button class="btn btn-ghost btn-sm" type="button" id="exportCsv" data-i18n="o.export">Export CSV</button>
+        </div>
+        <div class="filters" role="search">
+          <label for="f-q" class="f-q"><span class="sr" data-i18n="o.search">Search</span><input id="f-q" type="search" placeholder="Search names, emails, cities, items" data-i18n-ph="o.searchPh"></label>
+          <label for="f-status"><span class="sr" data-i18n="th.status">Status</span>
+            <select id="f-status" class="cell-input"><option value="" data-i18n="o.allStatuses">All statuses</option></select></label>
+          <label for="f-type"><span class="sr" data-i18n="th.type">Type</span>
+            <select id="f-type" class="cell-input"><option value="" data-i18n="o.allTypes">All types</option><option value="Sender" data-i18n="role.Sender">Item</option><option value="Traveler" data-i18n="role.Traveler">Trip</option></select></label>
+          <label for="f-dir"><span class="sr" data-i18n="form.dir">Direction</span>
+            <select id="f-dir" class="cell-input"><option value="" data-i18n="o.allDirs">Both directions</option><option value="to" data-i18n="form.dirTo">To Addis Ababa</option><option value="from" data-i18n="form.dirFrom">From Addis Ababa</option></select></label>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th data-i18n="th.date">Date</th><th data-i18n="th.name">Name &amp; email</th><th data-i18n="th.type">Type</th><th data-i18n="th.dest">Route</th><th data-i18n="th.details">Details</th><th data-i18n="th.status">Status</th><th data-i18n="th.fee">Fee (USD)</th><th data-i18n="th.notes">Notes</th></tr></thead>
+            <tbody id="ordersBody"></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="tilet" aria-hidden="true"></div>
+  <div class="wrap foot">
+    <div>
+      <a class="brand" href="#home"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="18" cy="21" r="8" fill="#fff"/><rect x="15.6" y="6" width="4.8" height="9" rx="2" fill="#fff"/><path d="M11.5 18 L5 11.5" stroke="#fff" stroke-width="3" stroke-linecap="round"/><rect x="14.6" y="4" width="6.8" height="3" rx="1.5" fill="#dca843"/></svg></span><span class="brand-name">Jebena Express</span></a>
+      <small><span data-i18n="footer.tag">Carrying home, one suitcase at a time</span> · <span class="geez" lang="am">እንኳን ደህና መጡ</span> · <span data-i18n="footer.demo">Demo site</span></small>
+    </div>
+    <nav aria-label="Footer">
+      <a href="#home" data-i18n="nav.home">Home</a><a href="#about" data-i18n="nav.about">About Us</a><a href="#items" data-i18n="footer.items">Prohibited items</a><a href="#contact" data-i18n="nav.contact">Contact</a>
+    </nav>
+  </div>
+</footer>
+
+<!-- Account dialog: log in, sign up, reset and change password -->
+<div class="overlay" id="authOverlay" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+    <div class="tilet" aria-hidden="true"></div>
+    <div class="dialog-body">
+      <div class="dialog-head">
+        <div class="stack" style="gap:4px">
+          <span class="eyebrow" id="authEyebrow"></span>
+          <h3 id="auth-title"></h3>
+        </div>
+        <button class="x" type="button" id="closeAuth" aria-label="Close" data-i18n-aria="login.close">×</button>
+      </div>
+      <p class="note" id="authIntro" hidden></p>
+      <form id="authForm" novalidate>
+        <div class="hp" aria-hidden="true"><label for="a-website">Website</label><input id="a-website" name="website" tabindex="-1" autocomplete="off"></div>
+        <label for="a-name" id="aNameRow"><span data-i18n="auth.name">Full name</span><input id="a-name" autocomplete="name"></label>
+        <label for="a-email" id="aEmailRow"><span data-i18n="form.email">Email</span><input id="a-email" type="email" autocomplete="email"></label>
+        <label for="a-pass" id="aPassRow"><span id="aPassLabel">Password</span><input id="a-pass" type="password" autocomplete="current-password"></label>
+        <label for="a-pass2" id="aPass2Row"><span data-i18n="auth.confirm">Confirm password</span><input id="a-pass2" type="password" autocomplete="new-password"></label>
+        <label for="a-code" id="aCodeRow"><span data-i18n="auth.codeLabel">6-digit code</span><input id="a-code" class="code-input" inputmode="numeric" autocomplete="one-time-code" maxlength="10" pattern="[0-9]*" placeholder="123456"></label>
+        <div id="authCaptcha"></div>
+        <div id="authStatus" class="status" role="alert" hidden></div>
+        <button class="btn btn-primary" type="submit" id="authSubmit">Log in</button>
+        <div class="auth-links">
+          <button type="button" class="linkish" id="authForgot" data-i18n="auth.forgot">Forgot password?</button>
+          <button type="button" class="linkish" id="authSwitch"></button>
+          <button type="button" class="linkish" id="authAlt"></button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script src="assets/i18n.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

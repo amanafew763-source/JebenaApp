@@ -1,0 +1,15 @@
+<!-- Supabase → Authentication → Emails → "Magic Link"
+     Subject:  Your Jebena Express code: {{ .Token }} / Dein Code: {{ .Token }}
+     Paste everything below as the message body. -->
+<div style="font-family:Arial,Helvetica,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#18140f">
+  <div style="font-weight:800;font-size:18px;color:#0f7a55">Jebena Express</div>
+  <h2 style="font-size:20px;margin:18px 0 8px">Your login code</h2>
+  <p style="margin:0 0 12px">Enter this code on the website to continue:</p>
+  <p style="font-size:32px;font-weight:700;letter-spacing:8px;margin:0 0 12px">{{ .Token }}</p>
+  <p style="margin:0 0 20px;color:#6b6157;font-size:14px">It's valid for 1 hour. If you didn't ask for it, you can ignore this email.</p>
+  <hr style="border:0;border-top:1px solid #eee7dc;margin:20px 0">
+  <h2 style="font-size:20px;margin:0 0 8px">Dein Anmeldecode</h2>
+  <p style="margin:0 0 12px">Gib diesen Code auf der Website ein, um fortzufahren:</p>
+  <p style="font-size:32px;font-weight:700;letter-spacing:8px;margin:0 0 12px">{{ .Token }}</p>
+  <p style="margin:0;color:#6b6157;font-size:14px">Er ist 1 Stunde gültig. Wenn du ihn nicht angefordert hast, kannst du diese E-Mail ignorieren.</p>
+</div>
