@@ -610,3 +610,56 @@ Object.assign(window.JEBENA_I18N.de, {
   'form.agree.sender':'Ich habe die <a class="inline-link" href="rules.html#customers" target="_blank" rel="noopener">Regeln</a> gelesen. Mein Artikel steht nicht auf der <a class="inline-link" href="rules.html#items" target="_blank" rel="noopener">Liste verbotener Artikel</a>, und ich weiß, dass die reisende Person ihn prüfen und ablehnen kann.',
   'form.agree.traveler':'Ich habe die <a class="inline-link" href="rules.html#travelers" target="_blank" rel="noopener">Regeln für Reisende</a> gelesen. Ich prüfe jeden Artikel vor dem Einpacken und lehne alles ab, was auf der <a class="inline-link" href="rules.html#items" target="_blank" rel="noopener">Liste verbotener Artikel</a> steht.'
 });
+
+// ---------- 22 Nov 2026 (2): Find a traveler ----------
+Object.assign(window.JEBENA_I18N.en, {
+  'hero.whatSend':'What are you sending?', 'hero.neededBy':'Needed by', 'hero.kgPh':'e.g. 8', 'hero.errType':'Choose what you’re sending.',
+  'form.carry':'What will you carry on this trip?',
+  'err.carry':'Tick at least one kind of item you’re willing to carry.',
+  'acct.carry':'What I’m willing to carry', 'acct.carrySub':'For when you travel: this pre-fills each new trip, and you can change it per trip.',
+  'st.saveErr':'That didn’t save. Please try again.', 'st.carryNone':'Not set yet',
+  'm.notCarry':'Trip doesn’t list {type}',
+  'find.back':'← Back to the home page', 'find.eyebrow':'Find a traveler', 'find.title':'Travelers who can carry {type} to {home}',
+  'find.update':'Search again', 'find.loading':'Looking for travelers…', 'find.err':'The search didn’t work. Please try again.',
+  'find.demo':'Demo page: these are example travelers. On the live site you’ll see real trips.',
+  'find.none':'No traveler matches yet', 'find.noneSub':'Post your request anyway. When someone lists a fitting trip, we’ll match you and email you.',
+  'find.postAnyway':'Post my request anyway',
+  'find.sameHome':'Going to {home} ({n})', 'find.sameHome1':'Going to {home} (1)',
+  'find.otherHome':'Going to other cities in Ethiopia ({n})', 'find.otherHomeNote':'The item would be handed over in the traveler’s city, so the person picking it up would collect it there.',
+  'find.newTraveler':'New traveler, no ratings yet', 'find.free':'Space free', 'find.carries':'Carries',
+  'find.leavesFrom':'Leaves from {c}', 'find.arrivesIn':'Lands in {c}',
+  'find.pick':'Send my item with {name}',
+  'find.pickEyebrow':'Sending with', 'find.pickMeta':'Flies {d} · {route} · {kg} free', 'find.pickClear':'Choose someone else',
+  'find.privacy':'Only first names are shown here. Phone numbers and emails are shared once a traveler accepts your item.',
+  'find.sent':'Request sent to {name}. They’ll accept or decline, and we’ll email you either way.',
+  'find.sentFail':'Your request is saved, but we couldn’t send it to {name} (their trip may have just filled up). We’ll find you another traveler.',
+  'find.err.readyLate':'The item has to be ready at least one day before this traveler’s flight.',
+  'find.err.neededEarly':'This traveler flies after your “needed by” date. Pick a later date or another traveler.',
+  'find.err.tooHeavy':'That’s more than this traveler has room for.'
+});
+Object.assign(window.JEBENA_I18N.de, {
+  'hero.whatSend':'Was schickst du?', 'hero.neededBy':'Benötigt bis', 'hero.kgPh':'z. B. 8', 'hero.errType':'Wähle aus, was du schickst.',
+  'form.carry':'Was nimmst du auf dieser Reise mit?',
+  'form.carryHint':'Nur Leute, die solche Artikel schicken, finden deine Reise. Wir merken uns deine Auswahl für das nächste Mal.',
+  'err.carry':'Wähle mindestens eine Art von Artikel, die du mitnehmen würdest.',
+  'acct.carry':'Was ich mitnehmen würde', 'acct.carrySub':'Für deine Reisen: Das ist die Vorauswahl für jede neue Reise und lässt sich pro Reise ändern.',
+  'st.saveErr':'Das hat nicht geklappt. Bitte versuch es noch einmal.', 'st.carryNone':'Noch nicht angegeben',
+  'm.notCarry':'Reise nimmt keine {type} mit',
+  'find.back':'← Zurück zur Startseite', 'find.eyebrow':'Reisende finden', 'find.title':'Reisende, die {type} nach {home} mitnehmen',
+  'find.update':'Erneut suchen', 'find.loading':'Suche nach Reisenden …', 'find.err':'Die Suche hat nicht geklappt. Bitte versuch es noch einmal.',
+  'find.demo':'Demo-Seite: Das sind Beispiel-Reisende. Auf der echten Seite siehst du echte Reisen.',
+  'find.none':'Noch keine passende reisende Person', 'find.noneSub':'Trag deine Anfrage trotzdem ein. Sobald jemand eine passende Reise einträgt, vermitteln wir euch und schicken dir eine E-Mail.',
+  'find.postAnyway':'Anfrage trotzdem eintragen',
+  'find.sameHome':'Reisen nach {home} ({n})', 'find.sameHome1':'Reise nach {home} (1)',
+  'find.otherHome':'Reisen in andere Städte in Äthiopien ({n})', 'find.otherHomeNote':'Der Artikel würde in der Stadt der reisenden Person übergeben, die abholende Person müsste ihn also dort abholen.',
+  'find.newTraveler':'Neu dabei, noch keine Bewertungen', 'find.free':'Freier Platz', 'find.carries':'Nimmt mit',
+  'find.leavesFrom':'Startet in {c}', 'find.arrivesIn':'Landet in {c}',
+  'find.pick':'Mit {name} schicken',
+  'find.pickEyebrow':'Du schickst mit', 'find.pickMeta':'Fliegt am {d} · {route} · {kg} frei', 'find.pickClear':'Jemand anderen wählen',
+  'find.privacy':'Hier stehen nur Vornamen. Telefonnummern und E-Mail-Adressen werden geteilt, sobald eine reisende Person deinen Artikel annimmt.',
+  'find.sent':'Anfrage an {name} gesendet. {name} nimmt sie an oder lehnt ab, und wir schicken dir in beiden Fällen eine E-Mail.',
+  'find.sentFail':'Deine Anfrage ist gespeichert, konnte aber nicht an {name} gesendet werden (die Reise ist vielleicht gerade voll geworden). Wir suchen dir jemand anderen.',
+  'find.err.readyLate':'Der Artikel muss mindestens einen Tag vor dem Flug dieser reisenden Person bereit sein.',
+  'find.err.neededEarly':'Diese Person fliegt erst nach deinem „Benötigt bis“-Datum. Wähle ein späteres Datum oder jemand anderen.',
+  'find.err.tooHeavy':'Das ist mehr, als diese Person Platz hat.'
+});

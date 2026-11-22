@@ -49,7 +49,7 @@ const TEXT = {
     traveler: {
       received: ['We got your trip: {route}', 'Thanks for offering space on your trip. We’ll email you when we have an item for you to accept or decline.'],
       cancelled: ['Trip cancelled: {route}', 'Your trip has been cancelled. If that’s a mistake, reply to this email.'],
-      match_proposed: ['New item for your trip: please accept or decline', 'We’d like you to carry the item below. Open your status page to see its photo, then accept or decline. Contact details are shared only after you accept.'],
+      match_proposed: ['New item for your trip: please accept or decline', 'Someone would like you to carry the item below. Open your status page to see its photo, then accept or decline. Contact details are shared only after you accept.'],
       match_cancelled: ['An item was removed from your trip', 'The item below is no longer on your trip, so you don’t need to carry it.']
     } as Record<string, [string, string]>
   },
@@ -71,7 +71,7 @@ const TEXT = {
     traveler: {
       received: ['Deine Reise ist eingegangen: {route}', 'Danke, dass du Platz auf deiner Reise anbietest. Wir melden uns, sobald wir einen Artikel haben, den du annehmen oder ablehnen kannst.'],
       cancelled: ['Reise storniert: {route}', 'Deine Reise wurde storniert. Falls das ein Irrtum ist, antworte auf diese E-Mail.'],
-      match_proposed: ['Neuer Artikel für deine Reise: bitte annehmen oder ablehnen', 'Wir möchten, dass du den Artikel unten mitnimmst. Auf deiner Statusseite siehst du das Foto und kannst annehmen oder ablehnen. Kontaktdaten werden erst nach deiner Zusage geteilt.'],
+      match_proposed: ['Neuer Artikel für deine Reise: bitte annehmen oder ablehnen', 'Jemand möchte, dass du den Artikel unten mitnimmst. Auf deiner Statusseite siehst du das Foto und kannst annehmen oder ablehnen. Kontaktdaten werden erst nach deiner Zusage geteilt.'],
       match_cancelled: ['Ein Artikel wurde von deiner Reise entfernt', 'Der Artikel unten ist nicht mehr Teil deiner Reise. Du musst ihn nicht mitnehmen.']
     } as Record<string, [string, string]>
   }

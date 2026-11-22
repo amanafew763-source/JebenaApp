@@ -71,9 +71,17 @@
               </div>
             </div>
             <div class="book-row what-row">
-              <div class="book-field">
-                <label for="h-what" id="h-what-label">What are you sending?</label>
-                <input id="h-what" placeholder="e.g. 2 kg of clothes" autocomplete="off">
+              <div class="book-field" id="hTypeField">
+                <label for="h-type" data-i18n="hero.whatSend">What are you sending?</label>
+                <select id="h-type" class="home-select"><option value="" data-i18n="form.typeChoose">Choose a type</option><option value="clothes" data-i18n="type.clothes">Clothes</option><option value="medicine" data-i18n="type.medicine">Medicine</option><option value="electronics" data-i18n="type.electronics">Electronics</option><option value="documents" data-i18n="type.documents">Documents</option><option value="food" data-i18n="type.food">Food</option><option value="other" data-i18n="type.other">Other</option></select>
+              </div>
+              <div class="book-field" id="hKgField" hidden>
+                <label for="h-kg" data-i18n="hero.whatTravel">Space you have</label>
+                <input id="h-kg" type="number" min="0.5" max="100" step="0.5" inputmode="decimal" placeholder="8 kg" data-i18n-ph="hero.kgPh">
+              </div>
+              <div class="book-field date-field">
+                <label for="h-date" id="h-date-label">Needed by</label>
+                <input id="h-date" type="date">
               </div>
               <button class="btn btn-primary" type="submit" id="bookBtn">Find a traveler</button>
             </div>
@@ -270,6 +278,11 @@
       <div class="form-card">
         <form id="contactForm" novalidate>
           <div class="hp" aria-hidden="true"><label for="c-website">Website</label><input id="c-website" name="website" tabindex="-1" autocomplete="off"></div>
+          <div id="tripPick" class="trip-pick" hidden>
+            <span class="tp-avatar" id="tripPickInitial" aria-hidden="true"></span>
+            <div class="tp-text"><span class="eyebrow" data-i18n="find.pickEyebrow">Sending with</span><b id="tripPickName"></b><span class="note" id="tripPickMeta"></span></div>
+            <button type="button" class="linkish" id="tripPickClear" data-i18n="find.pickClear">Choose someone else</button>
+          </div>
           <fieldset class="role-seg">
             <legend data-i18n="form.iam">I am a</legend>
             <label for="c-role-s"><input type="radio" id="c-role-s" name="role" value="Sender" checked><span data-i18n="form.sending">I need something carried</span></label>
@@ -300,6 +313,11 @@
               <label for="c-flight"><span data-i18n="form.flight">Flight date</span><input id="c-flight" name="flight" type="date"></label>
               <label for="c-space"><span data-i18n="form.space">Space you can offer (kg)</span><input id="c-space" name="space" type="number" min="0.5" max="100" step="0.5" inputmode="decimal" placeholder="8"></label>
             </div>
+            <fieldset class="carry-set">
+              <legend data-i18n="form.carry">What will you carry on this trip?</legend>
+              <div class="carry-grid" id="carryGrid"></div>
+              <span class="hint" data-i18n="form.carryHint">Only people sending these kinds of items will find your trip. We'll remember your choice for next time.</span>
+            </fieldset>
           </div>
 
           <!-- Item details (people who need something carried) -->
@@ -370,6 +388,27 @@
     </section>
   </div>
 
+  <!-- ============ FIND A TRAVELER (results) ============ -->
+  <div id="findWrap" class="wrap" hidden>
+    <section class="find-view" aria-labelledby="find-title">
+      <a class="back-link" href="#home" data-i18n="find.back">← Back to the home page</a>
+      <div class="stack" style="gap:6px">
+        <span class="eyebrow" data-i18n="find.eyebrow">Find a traveler</span>
+        <h2 id="find-title">Travelers for your item</h2>
+      </div>
+      <form id="findForm" class="find-filters" novalidate>
+        <label for="f2-dir"><span data-i18n="form.dir">Direction</span><select id="f2-dir"><option value="to" data-i18n="o.dirTo">To Ethiopia</option><option value="from" data-i18n="o.dirFrom">From Ethiopia</option></select></label>
+        <label for="f2-city"><span id="f2-city-label">From</span><input id="f2-city" autocomplete="address-level2" placeholder="e.g. Frankfurt" data-i18n-ph="hero.cityPh"></label>
+        <label for="f2-home"><span data-i18n="form.homeLabel">City in Ethiopia</span><select id="f2-home"></select></label>
+        <label for="f2-type"><span data-i18n="form.type">What is it?</span><select id="f2-type"><option value="clothes" data-i18n="type.clothes">Clothes</option><option value="medicine" data-i18n="type.medicine">Medicine</option><option value="electronics" data-i18n="type.electronics">Electronics</option><option value="documents" data-i18n="type.documents">Documents</option><option value="food" data-i18n="type.food">Food</option><option value="other" data-i18n="type.other">Other</option></select></label>
+        <label for="f2-by"><span data-i18n="hero.neededBy">Needed by</span><input id="f2-by" type="date"></label>
+        <button class="btn btn-primary btn-sm" type="submit" data-i18n="find.update">Search again</button>
+      </form>
+      <div id="findResults" aria-live="polite"></div>
+      <p class="note find-privacy" data-i18n="find.privacy">Only first names are shown here. Phone numbers and emails are shared once a traveler accepts your item.</p>
+    </section>
+  </div>
+
   <!-- ============ MY ACCOUNT ============ -->
   <div id="accountWrap" class="wrap" hidden>
     <section id="account" class="account" aria-labelledby="account-title">
@@ -390,6 +429,15 @@
           <a class="btn btn-primary btn-sm" href="#contact" data-i18n="acct.new">New request</a>
         </div>
         <div id="myRequests" class="my-list"></div>
+      </article>
+      <article class="card" id="carryCard">
+        <div class="card-head">
+          <div><h3 data-i18n="acct.carry">What I'm willing to carry</h3><p class="sub" data-i18n="acct.carrySub">For when you travel: this pre-fills each new trip, and you can change it per trip.</p></div>
+        </div>
+        <form id="carryForm" class="carry-form" novalidate>
+          <div class="carry-grid" id="carryProfileGrid"></div>
+          <div class="actions"><button class="btn btn-primary btn-sm" type="submit" data-i18n="st.save">Save</button><span class="note" id="carryMsg" role="status"></span></div>
+        </form>
       </article>
     </section>
   </div>

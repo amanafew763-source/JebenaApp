@@ -35,6 +35,7 @@ create table public.profiles (
   id          uuid primary key references auth.users (id) on delete cascade,
   full_name   text check (char_length(full_name) <= 120),
   is_admin    boolean not null default false,
+  carry_types public.item_type[],        -- travelers: what they're usually willing to carry (pre-fills new trips)
   created_at  timestamptz not null default now()
 );
 
@@ -93,6 +94,7 @@ create table public.requests (
   -- traveler trips
   flight_date        date,
   space_kg           numeric(5, 1) check (space_kg > 0 and space_kg <= 100),
+  carry_types        public.item_type[] check (cardinality(carry_types) > 0),   -- what this traveler will carry on this trip
 
   -- items
   item_type          public.item_type,
@@ -154,6 +156,11 @@ begin
   if new.photo_path is not null and new.photo_path not like new.user_id::text || '/%' then
     raise exception 'photo_not_yours' using errcode = 'P0001';
   end if;
+  -- Trips say what they'll carry; items don't.
+  if new.role = 'traveler' and new.carry_types is null then
+    raise exception 'carry_types_required' using errcode = 'P0001';
+  end if;
+  if new.role = 'sender' then new.carry_types := null; end if;
   new.pickup_code := case when new.role = 'sender'
     then lpad((abs(hashtextextended(gen_random_uuid()::text, 0)) % 1000000)::text, 6, '0') end;
   return new;
@@ -238,8 +245,8 @@ begin
 end;
 $$;
 
--- Admin: pair an item with a trip.
-create function public.create_match(p_sender_request bigint, p_traveler_request bigint, p_confirm boolean default false)
+-- Shared checks for pairing an item with a trip (used by create_match and request_trip).
+create function public.make_match(p_sender_request bigint, p_traveler_request bigint, p_confirm boolean)
 returns bigint language plpgsql security definer set search_path = '' as $$
 declare
   s        public.requests;
@@ -248,8 +255,6 @@ declare
   t_email  text;
   v_id     bigint;
 begin
-  if not public.is_admin() then raise exception 'match_not_admin' using errcode = '42501'; end if;
-
   select * into s  from public.requests where id = p_sender_request   for update;
   select * into tr from public.requests where id = p_traveler_request for update;
   if s.id is null or tr.id is null then raise exception 'match_not_found'; end if;
@@ -280,11 +285,13 @@ begin
      or regexp_replace(s.contact_phone, '[^0-9]', '', 'g') = regexp_replace(tr.contact_phone, '[^0-9]', '', 'g') then
     raise exception 'match_same_email';
   end if;
-  -- Look-alike names or different cities (at either end) need an explicit confirmation.
+  -- Look-alike names, different cities (at either end) or an item type the
+  -- traveler didn't list need an explicit confirmation.
   if not coalesce(p_confirm, false) and (
        public.norm_name(s.contact_name) = public.norm_name(tr.contact_name)
        or lower(btrim(s.city)) <> lower(btrim(tr.city))
-       or s.home_city <> tr.home_city) then
+       or s.home_city <> tr.home_city
+       or (tr.carry_types is not null and not (s.item_type = any (tr.carry_types)))) then
     raise exception 'match_needs_confirm';
   end if;
 
@@ -294,6 +301,34 @@ begin
 
   update public.requests set status = 'matched' where id in (s.id, tr.id) and status <> 'matched';
   return v_id;
+end;
+$$;
+
+-- Admin: pair an item with a trip.
+create function public.create_match(p_sender_request bigint, p_traveler_request bigint, p_confirm boolean default false)
+returns bigint language plpgsql security definer set search_path = '' as $$
+begin
+  if not public.is_admin() then raise exception 'match_not_admin' using errcode = '42501'; end if;
+  return public.make_match(p_sender_request, p_traveler_request, p_confirm);
+end;
+$$;
+
+-- "Find a traveler": the person who needs something carried picks a trip for
+-- their own item. The traveler then accepts or declines, as with admin matches.
+create function public.request_trip(p_item bigint, p_trip bigint)
+returns bigint language plpgsql security definer set search_path = '' as $$
+declare
+  s  public.requests;
+  tr public.requests;
+begin
+  select * into s  from public.requests where id = p_item;
+  select * into tr from public.requests where id = p_trip;
+  if s.id is null or s.user_id is distinct from auth.uid() or s.role <> 'sender' then
+    raise exception 'not_your_request' using errcode = '42501';
+  end if;
+  if tr.id is null or tr.role <> 'traveler' then raise exception 'match_not_found'; end if;
+  if tr.carry_types is null or not (s.item_type = any (tr.carry_types)) then raise exception 'trip_wont_carry'; end if;
+  return public.make_match(s.id, tr.id, true);   -- they chose this traveler knowingly: no extra confirmation
 end;
 $$;
 
@@ -408,6 +443,9 @@ begin
     contact_phone  = coalesce(p ->> 'contact_phone', contact_phone),
     flight_date    = case when role = 'traveler' and p ? 'flight_date' then (p ->> 'flight_date')::date else flight_date end,
     space_kg       = case when role = 'traveler' and p ? 'space_kg' then (p ->> 'space_kg')::numeric else space_kg end,
+    carry_types    = case when role = 'traveler' and p ? 'carry_types'
+                          then (select array_agg(x::public.item_type) from jsonb_array_elements_text(p -> 'carry_types') x)
+                          else carry_types end,
     item_type      = case when role = 'sender' and p ? 'item_type' then (p ->> 'item_type')::public.item_type else item_type end,
     weight_kg      = case when role = 'sender' and p ? 'weight_kg' then (p ->> 'weight_kg')::numeric else weight_kg end,
     ready_date     = case when role = 'sender' and p ? 'ready_date' then (p ->> 'ready_date')::date else ready_date end,
@@ -488,6 +526,30 @@ returns jsonb language sql stable security definer set search_path = '' as $$
   select jsonb_build_object('avg', round(avg(stars)::numeric, 1), 'count', count(*))
     from public.ratings where ratee_id = p_user;
 $$;
+
+-- "Find a traveler" search. Anyone may search; results show only a first name,
+-- rating, flight date, route and free space (never contact details).
+create function public.find_travelers(p_home text, p_dir public.request_dir, p_item public.item_type,
+                                      p_needed_by date default null, p_city text default null, p_weight numeric default null)
+returns table (trip_id bigint, first_name text, rating jsonb, flight_date date, city text, home_city text,
+               space_left numeric, carry_types public.item_type[], same_home boolean, same_city boolean)
+language sql stable security definer set search_path = '' as $$
+  select t.id, split_part(btrim(t.contact_name), ' ', 1), public.user_rating(t.user_id), t.flight_date, t.city, t.home_city,
+         t.space_kg - public.trip_used_kg(t.id), t.carry_types,
+         t.home_city = p_home, lower(btrim(t.city)) = lower(btrim(coalesce(p_city, '')))
+    from public.requests t
+   where t.role = 'traveler' and t.status in ('new', 'waiting', 'matched')
+     and t.direction = p_dir
+     and public.home_country(t.home_city) = public.home_country(p_home)
+     and t.flight_date >= current_date + 1                       -- the item reaches them at least a day before
+     and (p_needed_by is null or t.flight_date <= p_needed_by)
+     and p_item = any (t.carry_types)
+     and t.space_kg - public.trip_used_kg(t.id) >= greatest(coalesce(p_weight, 0), 0.1)
+     and (auth.uid() is null or t.user_id <> auth.uid())       -- not your own trips
+   order by t.home_city = p_home desc, lower(btrim(t.city)) = lower(btrim(coalesce(p_city, ''))) desc, t.flight_date
+   limit 50;
+$$;
+
 
 -- ---------- status page ----------
 -- Everything one request's status page needs, for its owner (or an admin).
@@ -632,10 +694,10 @@ revoke all on public.profiles, public.requests, public.request_events, public.ma
               public.ratings, public.request_notes, public.visits from anon, authenticated;
 
 grant select on public.profiles to authenticated;
-grant update (full_name) on public.profiles to authenticated;     -- never is_admin
+grant update (full_name, carry_types) on public.profiles to authenticated;     -- never is_admin
 
 grant select on public.requests to authenticated;
-grant insert (role, direction, city, home_city, details, contact_name, contact_email, contact_phone, agreed_prohibited, lang,
+grant insert (role, direction, city, home_city, carry_types, details, contact_name, contact_email, contact_phone, agreed_prohibited, lang,
               flight_date, space_kg, item_type, weight_kg, ready_date, needed_by, photo_path,
               handover_name, handover_phone, pickup_name, pickup_phone)
   on public.requests to authenticated;
@@ -651,7 +713,7 @@ begin
   -- internal helpers: nobody calls these directly
   foreach f in array array['public.handle_new_user()', 'public.prepare_new_request()', 'public.log_request_status()',
                            'public.touch_updated_at()', 'public.settle_trip(bigint)', 'public.my_trip_match(bigint)',
-                           'public.trip_used_kg(bigint)'] loop
+                           'public.trip_used_kg(bigint)', 'public.make_match(bigint, bigint, boolean)'] loop
     execute format('revoke all on function %s from public, anon, authenticated', f);
   end loop;
   -- called from the website by logged-in users (each checks who is calling)
@@ -659,12 +721,13 @@ begin
                            'public.cancel_match(bigint)', 'public.respond_match(bigint, boolean)', 'public.mark_handed_over(bigint)',
                            'public.confirm_pickup(bigint, text)', 'public.update_my_request(bigint, jsonb)',
                            'public.cancel_my_request(bigint)', 'public.rate_match(bigint, integer, text)',
-                           'public.request_details(bigint)', 'public.user_rating(uuid)'] loop
+                           'public.request_details(bigint)', 'public.user_rating(uuid)', 'public.request_trip(bigint, bigint)'] loop
     execute format('revoke all on function %s from public, anon', f);
     execute format('grant execute on function %s to authenticated', f);
   end loop;
   -- anonymous visit analytics
-  foreach f in array array['public.start_visit(text, text, text, text)', 'public.touch_visit(uuid, integer, boolean)'] loop
+  foreach f in array array['public.start_visit(text, text, text, text)', 'public.touch_visit(uuid, integer, boolean)',
+                           'public.find_travelers(text, public.request_dir, public.item_type, date, text, numeric)'] loop
     execute format('revoke all on function %s from public', f);
     execute format('grant execute on function %s to anon, authenticated', f);
   end loop;

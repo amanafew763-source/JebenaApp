@@ -65,7 +65,7 @@
   let user = null;            // Supabase auth user
   let hasPassword = false;    // senders may sign in with an email code only
   let profile = null;         // { full_name, is_admin }
-  let view = 'home';          // home | account | admin | status
+  let view = 'home';          // home | find | account | admin | status
   let statusId = null;        // request shown on the status page
   let pendingStatus = null;   // status page to open after logging in
 
@@ -90,6 +90,8 @@
     document.body.classList.toggle('admin-mode', v === 'admin');
     document.body.classList.toggle('account-mode', v === 'account');
     document.body.classList.toggle('status-mode', v === 'status');
+    document.body.classList.toggle('find-mode', v === 'find');
+    $('findWrap').hidden = v !== 'find';
     $('adminWrap').hidden = v !== 'admin';
     $('accountWrap').hidden = v !== 'account';
     $('statusWrap').hidden = v !== 'status';
@@ -109,13 +111,15 @@
       statusId = id; setView('status'); renderStatus(id);
     } else if(h === '#account'){
       if(user) setView('account'); else if(sb) openAuth('code');
-    } else if(view === 'status' || view === 'account'){
+    } else if(h.startsWith('#find')){
+      setView('find'); renderFind(readFindHash());
+    } else if(view === 'status' || view === 'account' || view === 'find'){
       setView('home');
     }
   }
   window.addEventListener('hashchange', route);
   adminLink.addEventListener('click', e=>{ e.preventDefault(); setMenu(false); setView('admin'); });
-  document.querySelectorAll('a[href^="#"]:not(#adminLink):not([href="#account"])').forEach(a=>a.addEventListener('click', ()=>{ if(view !== 'home') setView('home'); }));
+  document.querySelectorAll('a[href^="#"]:not(#adminLink):not([href="#account"]):not([href^="#find"])').forEach(a=>a.addEventListener('click', ()=>{ if(view !== 'home') setView('home'); }));
 
   // ---------- account dialog ----------
   // Senders: email code (no password). Travelers: password account.
@@ -265,7 +269,7 @@
   async function loadProfile(){
     if(!user){ profile = null; hasPassword = false; return; }
     const [p, pw] = await Promise.all([
-      sb.from('profiles').select('full_name, is_admin').eq('id', user.id).maybeSingle(),
+      sb.from('profiles').select('full_name, is_admin, carry_types').eq('id', user.id).maybeSingle(),
       sb.rpc('has_password')
     ]);
     profile = p.data || { full_name: '', is_admin: false };
@@ -322,6 +326,19 @@
   ];
   const HOME_BY_ID = new Map(HOMES.map(h => [h.id, h]));
   const COUNTRIES = [...new Set(HOMES.map(h => h.c))];   // just Ethiopia for now
+  const ITEM_TYPES = ['clothes', 'medicine', 'electronics', 'documents', 'food', 'other'];
+  // Checkboxes for "What will you carry?" (keeps the ticks when the language changes).
+  const checkedIn = box => [...box.querySelectorAll('input[type=checkbox]:checked')].map(i => i.value);
+  function carryBoxes(box, name, selected){
+    const cur = selected || checkedIn(box);
+    box.innerHTML = '';
+    ITEM_TYPES.forEach(k=>{
+      const l = document.createElement('label'); l.className = 'check';
+      const i = document.createElement('input'); i.type = 'checkbox'; i.name = name; i.value = k; i.checked = cur.includes(k);
+      const sp = document.createElement('span'); sp.textContent = t('type.' + k);
+      l.append(i, sp); box.appendChild(l);
+    });
+  }
   const DEFAULT_HOME = 'Addis Ababa';
   const homeOf = id => HOME_BY_ID.get(id) || HOME_BY_ID.get(DEFAULT_HOME);
   const homeName = id => { const h = homeOf(id); return (lang === 'de' && h.de) || h.id; };
@@ -468,6 +485,7 @@
       ['ho', 'pu'].forEach(w => { if($('c-' + w + '-me').checked) setMe(w, true); });
     }
     $('needAccount').hidden = !sb || !!user;
+    if(user && profile && profile.carry_types && !carryTouched) carryBoxes($('carryGrid'), 'carry', profile.carry_types);
   }
   cForm.querySelectorAll('input[name=role]').forEach(r => r.addEventListener('change', setRoleUI));
   cForm.querySelectorAll('input[name=dir]').forEach(r => r.addEventListener('change', setFormDir));
@@ -491,6 +509,7 @@
       if(!v('flight') || !v('space')) return 'err.fillTrip';
       if(v('flight') < today) return 'err.past';
       const kg = Number(v('space')); if(!(kg > 0 && kg <= 100)) return 'err.space';
+      if(!checkedIn($('carryGrid')).length) return 'err.carry';
     } else {
       if(!v('itype') || !v('weight') || !v('ready') || !$('c-ho-name').value.trim() || !$('c-ho-phone').value.trim() || !$('c-pu-name').value.trim() || !$('c-pu-phone').value.trim()) return 'err.fillItem';
       const kg = Number(v('weight')); if(!(kg > 0 && kg <= 100)) return 'err.weight';
@@ -498,13 +517,19 @@
       if(v('needed') && v('needed') < v('ready')) return 'err.neededBeforeReady';
       if(!PHONE_RE.test($('c-ho-phone').value.trim()) || !PHONE_RE.test($('c-pu-phone').value.trim())) return 'err.phone';
       if(!photoBlob) return 'err.photo';
+      // Sending with a traveler picked from the search: dates must suit their flight.
+      if(pickedTrip){
+        if(v('ready') > addDays(pickedTrip.flight_date, -1)) return 'find.err.readyLate';
+        if(v('needed') && v('needed') < pickedTrip.flight_date) return 'find.err.neededEarly';
+        if(Number(v('weight')) > Number(pickedTrip.space_left)) return 'find.err.tooHeavy';
+      }
     }
     if(!cForm.agree.checked) return 'err.agree';
     return null;
   }
   function resetForm(){
-    cForm.reset(); formStartedAt = 0; photoBlob = null; meTouched = false;
-    $('photoPreview').hidden = true;
+    cForm.reset(); formStartedAt = 0; photoBlob = null; meTouched = false; carryTouched = false;
+    $('photoPreview').hidden = true; setPickedTrip(null);
     setRoleUI(); setFormDir(); setDateLimits(); prefillContact();
   }
 
@@ -532,7 +557,7 @@
       contact_name: v('name'), contact_email: v('email'), contact_phone: v('phone'),
       agreed_prohibited: true, lang
     };
-    if(traveler) Object.assign(row, { flight_date: v('flight'), space_kg: Number(v('space')) });
+    if(traveler) Object.assign(row, { flight_date: v('flight'), space_kg: Number(v('space')), carry_types: checkedIn($('carryGrid')) });
     else Object.assign(row, {
       item_type: v('itype'), weight_kg: Number(v('weight')), ready_date: v('ready'), needed_by: v('needed') || null,
       handover_name: $('c-ho-name').value.trim(), handover_phone: $('c-ho-phone').value.trim(),
@@ -543,8 +568,21 @@
       if(!traveler) row.photo_path = await uploadPhoto(photoBlob);
       const { data, error } = await sb.from('requests').insert(row).select('id').single();
       if(error) throw error;
+      const trip = !traveler && pickedTrip;
+      if(traveler){
+        // Remember what they carry as the default for their next trip.
+        profile = Object.assign(profile || {}, { carry_types: row.carry_types });
+        sb.from('profiles').update({ carry_types: row.carry_types }).eq('id', user.id).then(()=>{}, ()=>{});
+      }
       resetForm();
-      say('ok', 'ok.sent', null, [t('ok.openStatus'), '#r' + data.id]);
+      if(trip){
+        // Propose the item to the traveler they picked; they accept or decline.
+        const { error: pickErr } = await sb.rpc('request_trip', { p_item: data.id, p_trip: trip.trip_id });
+        if(pickErr) say('err', 'find.sentFail', {name: trip.first_name}, [t('ok.openStatus'), '#r' + data.id]);
+        else say('ok', 'find.sent', {name: trip.first_name}, [t('ok.openStatus'), '#r' + data.id]);
+      } else {
+        say('ok', 'ok.sent', null, [t('ok.openStatus'), '#r' + data.id]);
+      }
     } catch(err){
       const m = String((err && err.message) || '');
       say('err', m.includes('rate_limit') ? 'err.rate' : m === 'photo_upload' ? 'err.photoUpload' : m.includes('date_in_past') ? 'err.past' : 'err.save');
@@ -557,8 +595,10 @@
     heroRole = role;
     $('tabSend').setAttribute('aria-selected', String(role==='Sender'));
     $('tabTravel').setAttribute('aria-selected', String(role==='Traveler'));
-    $('h-what-label').textContent = t(role==='Sender' ? 'hero.whatSend' : 'hero.whatTravel');
-    $('h-what').placeholder = t(role==='Sender' ? 'hero.whatSendPh' : 'hero.whatTravelPh');
+    $('hTypeField').hidden = role !== 'Sender';
+    $('hKgField').hidden = role === 'Sender';
+    $('h-date-label').textContent = t(role==='Sender' ? 'hero.neededBy' : 'form.flight');
+    $('h-date').min = role === 'Sender' ? addDays(todayISO(), 2) : todayISO();
     $('bookBtn').textContent = t(role==='Sender' ? 'hero.btnSend' : 'hero.btnTravel');
   }
   function setHeroDir(dir){
@@ -578,17 +618,141 @@
   $('h-city').addEventListener('input', ()=>{ $('bookErr').hidden = true; });
   $('bookForm').addEventListener('submit', e=>{
     e.preventDefault();
-    const city = $('h-city').value.trim();
-    if(!city){ const err = $('bookErr'); err.textContent = t('hero.errCity'); err.hidden = false; $('h-city').focus(); return; }
-    cForm.querySelector(`input[name=role][value="${heroRole}"]`).checked = true; setAgreeText();
+    const city = $('h-city').value.trim(), err = $('bookErr');
+    if(!city){ err.textContent = t('hero.errCity'); err.hidden = false; $('h-city').focus(); return; }
+    if(heroRole === 'Sender'){
+      // "Find a traveler": show the matching trips on the results page.
+      const type = $('h-type').value;
+      if(!type){ err.textContent = t('hero.errType'); err.hidden = false; $('h-type').focus(); return; }
+      location.hash = findHash({ dir: heroDir, city, home: $('h-home').value, type, by: $('h-date').value });
+      return;
+    }
+    // "I'm traveling": fill in the trip form below.
+    cForm.querySelector('input[name=role][value="Traveler"]').checked = true; setRoleUI();
     cForm.querySelector(`input[name=dir][value="${heroDir}"]`).checked = true;
     cForm.home.value = $('h-home').value; setFormDir();
     cForm.city.value = city;
-    const what = $('h-what').value.trim();
-    if(what) cForm.message.value = t(heroRole==='Sender' ? 'form.prefixSend' : 'form.prefixSpace') + what;
+    if($('h-kg').value) cForm.space.value = $('h-kg').value;
+    if($('h-date').value) $('c-flight').value = $('h-date').value;
     $('contact').scrollIntoView({behavior: reduce?'auto':'smooth'});
     setTimeout(()=>$('c-name').focus({preventScroll:true}), reduce ? 0 : 500);
   });
+  ['h-type', 'h-kg', 'h-date'].forEach(id => $(id).addEventListener('input', ()=>{ $('bookErr').hidden = true; }));
+
+  // ---------- find a traveler (results page, #find?...) ----------
+  let lastFind = null, pickedTrip = null, carryTouched = false;
+  const findHash = q => '#find?' + new URLSearchParams(Object.entries(q).filter(([, v]) => v)).toString();
+  function readFindHash(){
+    const q = new URLSearchParams(location.hash.replace(/^#find\??/, ''));
+    return { dir: q.get('dir') === 'from' ? 'from' : 'to', city: q.get('city') || '', home: HOME_BY_ID.has(q.get('home')) ? q.get('home') : DEFAULT_HOME,
+             type: ITEM_TYPES.includes(q.get('type')) ? q.get('type') : 'clothes', by: /^\d{4}-\d{2}-\d{2}$/.test(q.get('by') || '') ? q.get('by') : '' };
+  }
+  // Example results for the demo page (no backend connected).
+  function demoTrips(q){
+    const all = [
+      { trip_id: 9001, first_name: 'Hanna', rating: {avg: 4.8, count: 6}, flight_date: addDays(todayISO(), 9),  city: q.city || 'Frankfurt', home_city: q.home, space_left: 7, carry_types: ['clothes', 'food', 'documents'] },
+      { trip_id: 9002, first_name: 'Dawit', rating: {avg: null, count: 0}, flight_date: addDays(todayISO(), 14), city: 'Washington DC', home_city: q.home, space_left: 12, carry_types: ['clothes', 'medicine', 'electronics', 'documents', 'food', 'other'] },
+      { trip_id: 9003, first_name: 'Meron', rating: {avg: 4.5, count: 2}, flight_date: addDays(todayISO(), 6),  city: q.city || 'Frankfurt', home_city: q.home === 'Addis Ababa' ? 'Bahir Dar' : 'Addis Ababa', space_left: 4, carry_types: ['clothes', 'medicine'] }
+    ];
+    return all.filter(r => r.carry_types.includes(q.type) && (!q.by || r.flight_date <= q.by))
+      .map(r => Object.assign(r, { same_home: r.home_city === q.home, same_city: normCity(r.city) === normCity(q.city) }))
+      .sort((a, b) => (b.same_home - a.same_home) || (b.same_city - a.same_city) || (a.flight_date < b.flight_date ? -1 : 1));
+  }
+  function fillFindForm(q){
+    fillHomeSelect($('f2-home'));
+    $('f2-dir').value = q.dir; $('f2-city').value = q.city; $('f2-home').value = q.home; $('f2-type').value = q.type; $('f2-by').value = q.by;
+    $('f2-by').min = addDays(todayISO(), 2);
+    $('f2-city-label').textContent = t(q.dir === 'from' ? 'hero.to' : 'hero.from');
+  }
+  async function renderFind(q){
+    lastFind = q; fillFindForm(q);
+    $('find-title').textContent = t('find.title', {type: lang === 'de' ? typeName(q.type) : typeName(q.type).toLowerCase(), home: homeName(q.home)});
+    const box = $('findResults');
+    box.innerHTML = `<p class="note">${esc(t('find.loading'))}</p>`;
+    let rows;
+    if(sb){
+      const { data, error } = await sb.rpc('find_travelers', { p_home: q.home, p_dir: q.dir === 'from' ? 'from_addis' : 'to_addis', p_item: q.type, p_needed_by: q.by || null, p_city: q.city || null });
+      if(lastFind !== q) return;            // a newer search started meanwhile
+      if(error){ box.innerHTML = `<p class="status err">${esc(t('find.err'))}</p>`; return; }
+      rows = data || [];
+    } else {
+      rows = demoTrips(q);
+    }
+    box.innerHTML = '';
+    if(!sb) box.appendChild(el('p', 'alert plain', esc(t('find.demo'))));
+    if(!rows.length){
+      const empty = el('div', 'find-empty');
+      empty.innerHTML = `<h3>${esc(t('find.none'))}</h3><p class="note">${esc(t('find.noneSub'))}</p>`;
+      const b = el('button', 'btn btn-primary'); b.type = 'button'; b.textContent = t('find.postAnyway');
+      b.addEventListener('click', () => pickTrip(null, q));
+      empty.appendChild(b); box.appendChild(empty); return;
+    }
+    const same = rows.filter(r => r.same_home), other = rows.filter(r => !r.same_home);
+    const group = (titleKey, list, noteKey) => {
+      if(!list.length) return;
+      const g = el('div', 'find-group');
+      g.appendChild(el('h3', null, esc(t(titleKey, {home: homeName(q.home), n: list.length}))));
+      if(noteKey) g.appendChild(el('p', 'note', esc(t(noteKey))));
+      const grid = el('div', 'trip-cards'); list.forEach(r => grid.appendChild(tripCard(r, q))); g.appendChild(grid);
+      box.appendChild(g);
+    };
+    group(same.length === 1 ? 'find.sameHome1' : 'find.sameHome', same);
+    group('find.otherHome', other, 'find.otherHomeNote');
+  }
+  function tripCard(r, q){
+    const c = el('article', 'trip-card');
+    const rating = r.rating && r.rating.count ? t(r.rating.count === 1 ? 'st.ratingVal1' : 'st.ratingVal', {avg: Number(r.rating.avg).toLocaleString(LOC(), {maximumFractionDigits: 1}), n: r.rating.count}) : t('find.newTraveler');
+    const route = routeLabel(q.dir, r.city, r.home_city);
+    const cityNote = r.same_city ? '' : `<span class="flag warn">${esc(t(q.dir === 'from' ? 'find.arrivesIn' : 'find.leavesFrom', {c: r.city}))}</span>`;
+    const homeNote = r.same_home ? '' : `<span class="flag warn">${esc(t('m.otherCity', {c: homeName(r.home_city)}))}</span>`;
+    const carries = (r.carry_types || []).map(k => `<span class="chip-type${k === q.type ? ' on' : ''}">${esc(typeName(k))}</span>`).join('');
+    c.innerHTML = `<div class="tc-head"><span class="tp-avatar" aria-hidden="true">${esc((r.first_name || '?').charAt(0).toUpperCase())}</span>
+        <div><b>${esc(r.first_name)}</b><span class="note">${esc(rating)}</span></div></div>
+      <div class="tc-route">${esc(route)}</div>
+      <dl class="tc-facts"><div><dt>${esc(t('form.flight'))}</dt><dd>${esc(fmtDay(r.flight_date))}</dd></div><div><dt>${esc(t('find.free'))}</dt><dd>${esc(fmtKg(r.space_left))}</dd></div></dl>
+      <div class="tc-carries"><span class="note">${esc(t('find.carries'))}</span>${carries}</div>
+      ${cityNote || homeNote ? `<div class="flags">${homeNote}${cityNote}</div>` : ''}`;
+    const b = el('button', 'btn btn-primary btn-sm'); b.type = 'button'; b.textContent = t('find.pick', {name: r.first_name});
+    b.addEventListener('click', () => pickTrip(r, q));
+    c.appendChild(b);
+    return c;
+  }
+  // Fill the request form for the chosen traveler (or none) and go to it.
+  function pickTrip(r, q){
+    history.replaceState(null, '', location.pathname + location.search);   // leave the results page
+    setView('home');
+    cForm.querySelector('input[name=role][value="Sender"]').checked = true; setRoleUI();
+    cForm.querySelector(`input[name=dir][value="${q.dir}"]`).checked = true;
+    fillHomeSelect(cForm.home); cForm.home.value = q.home; setFormDir();
+    cForm.city.value = q.city; cForm.itype.value = q.type;
+    if(q.by) $('c-needed').value = q.by;
+    setPickedTrip(r);
+    $('contact').scrollIntoView({behavior: reduce ? 'auto' : 'smooth'});
+    setTimeout(() => $('c-weight').focus({preventScroll: true}), reduce ? 0 : 500);
+  }
+  function setPickedTrip(r){
+    pickedTrip = r || null;
+    const box = $('tripPick'); box.hidden = !r;
+    $('c-ready').max = r ? addDays(r.flight_date, -1) : '';
+    if(!r) return;
+    $('tripPickInitial').textContent = (r.first_name || '?').charAt(0).toUpperCase();
+    $('tripPickName').textContent = r.first_name;
+    $('tripPickMeta').textContent = t('find.pickMeta', {d: fmtDay(r.flight_date), route: routeLabel(cForm.dir.value, r.city, r.home_city), kg: fmtKg(r.space_left)});
+  }
+  $('tripPickClear').addEventListener('click', () => {
+    const q = lastFind; setPickedTrip(null);
+    if(q) location.hash = findHash(q);
+  });
+  $('findForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const q = { dir: $('f2-dir').value, city: $('f2-city').value.trim(), home: $('f2-home').value, type: $('f2-type').value, by: $('f2-by').value };
+    const h = findHash(q);
+    if(location.hash === h) renderFind(readFindHash()); else location.hash = h;
+  });
+  $('f2-dir').addEventListener('change', () => { $('f2-city-label').textContent = t($('f2-dir').value === 'from' ? 'hero.to' : 'hero.from'); });
+  // Switching to "I'm traveling" drops the picked traveler.
+  cForm.querySelectorAll('input[name=role]').forEach(r => r.addEventListener('change', () => { if(isTraveler()) setPickedTrip(null); }));
+  $('carryGrid').addEventListener('change', () => { carryTouched = true; });
 
   // ---------- visit tracking (anonymous, stored in Supabase) ----------
   function classifySource(){
@@ -647,12 +811,12 @@
   const lbl = k => { const key = 'lbl.' + k; const s = t(key); return s === key ? k : s; };
   const typeName = k => k ? t('type.' + k) : '—';
   const telLink = p => `<a href="tel:${esc(String(p).replace(/[^\d+]/g, ''))}">${esc(p)}</a>`;
-  const REQ_COLS = 'id, user_id, created_at, role, direction, city, home_city, details, contact_name, contact_email, contact_phone, status, fee_usd, flight_date, space_kg, item_type, weight_kg, ready_date, needed_by';
+  const REQ_COLS = 'id, user_id, created_at, role, direction, city, home_city, carry_types, details, contact_name, contact_email, contact_phone, status, fee_usd, flight_date, space_kg, item_type, weight_kg, ready_date, needed_by';
   const fromDb = r => ({ id: r.id, at: Date.parse(r.created_at), name: r.contact_name, email: r.contact_email, phone: r.contact_phone,
     role: r.role === 'traveler' ? 'Traveler' : 'Sender', dir: r.direction === 'from_addis' ? 'from' : 'to',
     city: r.city, home: r.home_city || DEFAULT_HOME, message: r.details, status: r.status, fee: r.fee_usd, userId: r.user_id,
     flight: r.flight_date, space: r.space_kg == null ? null : Number(r.space_kg), itemType: r.item_type,
-    weight: r.weight_kg == null ? null : Number(r.weight_kg), ready: r.ready_date, needed: r.needed_by });
+    weight: r.weight_kg == null ? null : Number(r.weight_kg), ready: r.ready_date, needed: r.needed_by, carry: r.carry_types || null });
   const summary = r => r.role === 'Traveler'
     ? t('sum.trip', {d: fmtDay(r.flight), kg: fmtKg(r.space)})
     : t('sum.item', {type: typeName(r.itemType), kg: fmtKg(r.weight), d: fmtDay(r.ready)});
@@ -676,8 +840,20 @@
   const button = (key, cls, vars) => { const b = el('button', 'btn btn-sm ' + (cls || 'btn-ghost')); b.type = 'button'; b.textContent = t(key, vars); return b; };
 
   // ---------- my account ----------
+  function renderCarryCard(){
+    carryBoxes($('carryProfileGrid'), 'pcarry', (profile && profile.carry_types) || []);
+    $('carryMsg').textContent = '';
+  }
+  $('carryForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const list = checkedIn($('carryProfileGrid'));
+    const { error } = await sb.from('profiles').update({ carry_types: list.length ? list : null }).eq('id', user.id);
+    $('carryMsg').textContent = t(error ? 'st.saveErr' : 'st.saved');
+    if(!error){ profile.carry_types = list.length ? list : null; if(!carryTouched) carryBoxes($('carryGrid'), 'carry', list); }
+  });
   async function renderAccount(){
     if(!user) return;
+    renderCarryCard();
     const display = (profile && profile.full_name) || (user.email || '').split('@')[0];
     $('account-title').textContent = t('acct.hello', {name: display});
     $('accountEmail').textContent = user.email || '';
@@ -785,7 +961,9 @@
     const f = el('form', 'inline-form'); f.noValidate = true;
     const field = (key, name, type, value, extra = '') => `<label><span>${esc(t(key))}</span><input name="${name}" type="${type}" value="${esc(value ?? '')}" ${extra}></label>`;
     if(r.role === 'traveler'){
-      f.innerHTML = `<div class="two">${field('form.flight', 'flight_date', 'date', r.flight_date, `min="${todayISO()}"`)}${field('form.space', 'space_kg', 'number', r.space_kg, 'min="0.5" max="100" step="0.5"')}</div>`;
+      f.innerHTML = `<div class="two">${field('form.flight', 'flight_date', 'date', r.flight_date, `min="${todayISO()}"`)}${field('form.space', 'space_kg', 'number', r.space_kg, 'min="0.5" max="100" step="0.5"')}</div>
+        <fieldset class="carry-set"><legend>${esc(t('form.carry'))}</legend><div class="carry-grid"></div></fieldset>`;
+      carryBoxes(f.querySelector('.carry-grid'), 'carry_types', r.carry_types || []);
     } else {
       const opts = ['clothes', 'medicine', 'electronics', 'documents', 'food', 'other'].map(k => `<option value="${k}" ${k === r.item_type ? 'selected' : ''}>${esc(t('type.' + k))}</option>`).join('');
       f.innerHTML = `<div class="two"><label><span>${esc(t('form.type'))}</span><select name="item_type">${opts}</select></label>${field('form.weight', 'weight_kg', 'number', r.weight_kg, 'min="0.1" max="100" step="0.1"')}</div>
@@ -803,7 +981,11 @@
     f.addEventListener('submit', e => {
       e.preventDefault();
       const p = {};
-      new FormData(f).forEach((v, k) => { v = String(v).trim(); if(v !== '' || k === 'needed_by') p[k] = v; });
+      new FormData(f).forEach((v, k) => { if(k === 'carry_types') return; v = String(v).trim(); if(v !== '' || k === 'needed_by') p[k] = v; });
+      if(r.role === 'traveler'){
+        p.carry_types = checkedIn(f.querySelector('.carry-grid'));
+        if(!p.carry_types.length) return stMsg(f, 'err', 'err.carry');
+      }
       if(p.details != null && p.details.length < 3) return stMsg(f, 'err', 'err.fill');
       rpcThen(f, 'update_my_request', { p_id: r.id, p }, 'st.saved');
     });
@@ -882,7 +1064,8 @@
 
     const used = Number(d.used_kg || 0), total = Number(r.space_kg || 0);
     const ct = card('st.trip');
-    ct.appendChild(kv([['form.flight', esc(fmtDay(r.flight_date))], ['st.space', esc(t('st.spaceVal', {used: fmtKg(used), total: fmtKg(total)}))], ['st.details', esc(r.details)]]));
+    ct.appendChild(kv([['form.flight', esc(fmtDay(r.flight_date))], ['st.space', esc(t('st.spaceVal', {used: fmtKg(used), total: fmtKg(total)}))],
+      ['find.carries', esc((r.carry_types || []).map(typeName).join(', ') || t('st.carryNone'))], ['st.details', esc(r.details)]]));
     const bar = el('div', 'space-bar', `<i style="width:${Math.min(100, total ? used / total * 100 : 0).toFixed(0)}%"></i>`);
     bar.setAttribute('role', 'img'); bar.setAttribute('aria-label', t('st.spaceVal', {used: fmtKg(used), total: fmtKg(total)}));
     ct.appendChild(bar);
@@ -1313,12 +1496,14 @@
         const cityOk = normCity(s.city) === normCity(tr.city), homeOk = s.home === tr.home, nameAlike = normName(s.name) === normName(tr.name);
         const flag = (ok, c) => ok ? `<span class="flag good">${esc(t('m.sameCity', {c}))}</span>` : `<span class="flag warn">${esc(t('m.otherCity', {c}))}</span>`;
         const flags = [flag(homeOk, homeName(s.home)), flag(cityOk, s.city)];
+        const carryOk = !tr.carry || tr.carry.includes(s.itemType);
+        if(!carryOk) flags.push(`<span class="flag warn">${esc(t('m.notCarry', {type: typeName(s.itemType)}))}</span>`);
         if(nameAlike) flags.push(`<span class="flag warn">${esc(t('m.sameName'))}</span>`);
         const row = el('div', 'cand');
         row.innerHTML = `<div><div class="who">${esc(s.name)} <span class="muted">· ${esc(routeLabel(s.dir, s.city, s.home))}</span></div>
           <div class="what">${esc(summary(s))}${s.needed ? ' · ' + esc(t('m.neededBy', {d: fmtDay(s.needed)})) : ''} · ${esc(s.message)}</div><div class="flags">${flags.join('')}</div></div>`;
         const btn = button('m.match', 'btn-primary');
-        if(!cityOk || !homeOk || nameAlike) twoStep(btn, 'm.confirm', ()=>doMatch(s, tr, true));
+        if(!cityOk || !homeOk || !carryOk || nameAlike) twoStep(btn, 'm.confirm', ()=>doMatch(s, tr, true));
         else btn.addEventListener('click', ()=>doMatch(s, tr, false));
         row.appendChild(btn); list.appendChild(row);
       });
@@ -1425,6 +1610,8 @@
     if(!sb) $('sysbar').textContent = t('backend.off');
     setMenu(nav.dataset.open === 'true');
     fillHomeSelect($('h-home')); fillHomeSelect(cForm.home);
+    carryBoxes($('carryGrid'), 'carry'); carryBoxes($('carryProfileGrid'), 'pcarry');
+    if(pickedTrip) setPickedTrip(pickedTrip);
     setHeroRole(heroRole); setHeroDir(heroDir);
     setRoleUI(); setFormDir();
     setStepCaption(Math.max(0, lastStep));
@@ -1434,6 +1621,7 @@
     if(view === 'admin') renderDashboard();
     if(view === 'account') renderAccount();
     if(view === 'status' && statusId) renderStatus(statusId);
+    if(view === 'find' && lastFind) renderFind(lastFind);
   }
   document.querySelectorAll('.lang button').forEach(b=>b.addEventListener('click', ()=>{
     if(b.dataset.lang === lang) return;

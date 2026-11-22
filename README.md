@@ -75,8 +75,19 @@ Matching: a different city (a Jimma item on an Addis trip) is shown with a yello
 `schema.sql` is for new projects. When the database is already running, run the matching file in `supabase/updates/` once instead, in date order. Each one keeps existing data:
 
 - `2026-11-22-cities.sql`: adds the Ethiopian city (existing requests become Addis Ababa).
+- `2026-11-22-find-traveler.sql`: adds "What will you carry?", the traveler search and picking a traveler. Trips posted before it don't appear in the search until the traveler edits them and ticks what they'll carry.
 
 The rules (customer rules, prohibited items, customs, what travelers can't carry) live on their own page, `rules.html`, which the site opens in its own window (or a new tab if the browser blocks windows, and on phones). The customs rules themselves are in `assets/rules-data.js`.
+
+## Find a traveler
+
+On the home page, someone who needs something carried picks the route, **what they're sending** and a **"Needed by"** date, then clicks **Find a traveler**. The results page (`#find?...`) lists trips that:
+
+- go the same direction to the same city in Ethiopia (other Ethiopian cities are listed below, flagged),
+- fly at least a day from now and no later than the "Needed by" date,
+- list that item type under **"What will you carry?"**, and still have free space.
+
+Anyone can search. Results show only a first name, rating, flight date, route and free space. Choosing a traveler fills in the request form; when it's sent, the item is proposed to that trip (`request_trip`) and the traveler accepts or declines, as with admin matches. Travelers choose what they'll carry on each trip; the choice is remembered on their profile (**My account → What I'm willing to carry**).
 
 ## Setup
 
