@@ -6,6 +6,28 @@
   // ---------- setup ----------
   const CFG = window.JEBENA_CONFIG || {};
   const I18N = window.JEBENA_I18N;
+  // 6-digit email codes need your own email sender (custom SMTP) in Supabase.
+  // Until then everyone signs up with email + password. To switch codes on,
+  // add  emailCodes: true  to config.js.
+  const CODES = CFG.emailCodes === true;
+  if(!CODES){
+    Object.assign(I18N.en, {
+      'auth.login.title':'Log in', 'auth.signup.eyebrow':'New here?', 'auth.signup.title':'Create an account',
+      'auth.signupIntro':'Create a free account with your email and a password (at least 8 characters).',
+      'auth.toSignup':'No account yet? Create one',
+      'auth.needLogin':'Create a free account or log in to send your request. What you typed stays in the form.',
+      'auth.travelerLogin':'Create a free account or log in to post your trip. What you typed stays in the form.',
+      'st.needLogin':'Log in to see this request.'
+    });
+    Object.assign(I18N.de, {
+      'auth.login.title':'Anmelden', 'auth.signup.eyebrow':'Neu hier?', 'auth.signup.title':'Konto erstellen',
+      'auth.signupIntro':'Erstelle ein kostenloses Konto mit deiner E-Mail-Adresse und einem Passwort (mindestens 8 Zeichen).',
+      'auth.toSignup':'Noch kein Konto? Jetzt erstellen',
+      'auth.needLogin':'Erstelle ein kostenloses Konto oder melde dich an, um deine Anfrage zu senden. Deine Eingaben bleiben im Formular.',
+      'auth.travelerLogin':'Erstelle ein kostenloses Konto oder melde dich an, um deine Reise einzutragen. Deine Eingaben bleiben im Formular.',
+      'st.needLogin':'Melde dich an, um diese Anfrage zu sehen.'
+    });
+  }
   const sb = (CFG.supabaseUrl && CFG.supabaseAnonKey && window.supabase && window.supabase.createClient)
     ? window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey)
     : null;
@@ -107,6 +129,7 @@
     newpass: { email:false, code:false, name:false, pass:true,  pass2:true,  captcha:false, passKey:'auth.newPassword', passAuto:'new-password' },
     change:  { email:false, code:false, name:false, pass:true,  pass2:true,  captcha:false, passKey:'auth.newPassword', passAuto:'new-password' }
   };
+  if(!CODES){ delete AUTH.login.alt; delete AUTH.signup.alt; }
   let authMode = 'code', authIntroKey = null, authOpenedAt = 0, codeEmail = '', codeName = '';
   const modeKey = () => (authMode === 'change' && !hasPassword) ? 'setpw' : authMode;
   function renderAuthMode(){
@@ -124,10 +147,11 @@
     renderTurnstile();
   }
   function openAuth(mode, introKey, prefill){
+    if(!CODES && (mode === 'code' || mode === 'verify')) mode = 'login';
     authMode = mode; authIntroKey = introKey || null; authOpenedAt = Date.now();
     authStatus.hidden = true; $('a-pass').value = ''; $('a-pass2').value = ''; $('a-code').value = '';
     if(prefill && prefill.email != null) $('a-email').value = prefill.email;
-    if(prefill && prefill.name != null) codeName = prefill.name;
+    if(prefill && prefill.name != null){ codeName = prefill.name; if(!$('a-name').value) $('a-name').value = prefill.name; }
     renderAuthMode();
     authOverlay.hidden = false;
     if(!sb) authMsg('err', 'backend.off');
@@ -190,9 +214,11 @@
         if(error) throw error;
         closeAuth();
       } else if(authMode === 'signup'){
-        const { error } = await sb.auth.signUp({ email, password: pass, options: { data: { full_name: name }, emailRedirectTo: siteUrl(), captchaToken } });
+        const { data, error } = await sb.auth.signUp({ email, password: pass, options: { data: { full_name: name }, emailRedirectTo: siteUrl(), captchaToken } });
         if(error) throw error;
-        authMsg('ok', 'auth.checkEmail', { e: email });
+        // With "Confirm email" off in Supabase the account is ready at once.
+        if(data && data.session) closeAuth();
+        else authMsg('ok', 'auth.checkEmail', { e: email });
       } else if(authMode === 'reset'){
         const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: siteUrl(), captchaToken });
         if(error) throw error;
@@ -485,8 +511,8 @@
     const traveler = isTraveler();
     if(!user){
       pendingSend = true;
-      if(traveler) openAuth('login', 'auth.travelerLogin', {email: cForm.email.value.trim()});
-      else openAuth('code', 'auth.needLogin', {email: cForm.email.value.trim(), name: cForm.name.value.trim()});
+      if(traveler) openAuth(CODES ? 'login' : 'signup', 'auth.travelerLogin', {email: cForm.email.value.trim(), name: cForm.name.value.trim()});
+      else openAuth(CODES ? 'code' : 'signup', 'auth.needLogin', {email: cForm.email.value.trim(), name: cForm.name.value.trim()});
       return;
     }
     if(traveler && !hasPassword){ pendingSend = true; openAuth('change', 'auth.travelerNeedsPw'); return; }
