@@ -65,7 +65,7 @@
   let user = null;            // Supabase auth user
   let hasPassword = false;    // senders may sign in with an email code only
   let profile = null;         // { full_name, is_admin }
-  let view = 'home';          // home | find | send | account | admin | status
+  let view = 'home';          // home | find | send | trip | account | admin | status
   let statusId = null;        // request shown on the status page
   let pendingStatus = null;   // status page to open after logging in
 
@@ -92,6 +92,8 @@
     document.body.classList.toggle('status-mode', v === 'status');
     document.body.classList.toggle('find-mode', v === 'find');
     document.body.classList.toggle('send-mode', v === 'send');
+    document.body.classList.toggle('trip-mode', v === 'trip');
+    $('tripWrap').hidden = v !== 'trip';
     $('findWrap').hidden = v !== 'find';
     $('sendWrap').hidden = v !== 'send';
     $('adminWrap').hidden = v !== 'admin';
@@ -117,13 +119,15 @@
       setView('find'); renderFind(readFindHash());
     } else if(h.startsWith('#send')){
       setView('send'); renderSendPage(readFindHash());
-    } else if(view === 'status' || view === 'account' || view === 'find' || view === 'send'){
+    } else if(h.startsWith('#trip')){
+      setView('trip'); openTripPage();
+    } else if(view === 'status' || view === 'account' || view === 'find' || view === 'send' || view === 'trip'){
       setView('home');
     }
   }
   window.addEventListener('hashchange', route);
   adminLink.addEventListener('click', e=>{ e.preventDefault(); setMenu(false); setView('admin'); });
-  document.querySelectorAll('a[href^="#"]:not(#adminLink):not([href="#account"]):not([href^="#find"]):not([href^="#send"])').forEach(a=>a.addEventListener('click', ()=>{ if(view !== 'home') setView('home'); }));
+  document.querySelectorAll('a[href^="#"]:not(#adminLink):not([href="#account"]):not([href^="#find"]):not([href^="#send"]):not([href^="#trip"])').forEach(a=>a.addEventListener('click', ()=>{ if(view !== 'home') setView('home'); }));
 
   // ---------- account dialog ----------
   // Senders: email code (no password). Travelers: password account.
@@ -453,11 +457,25 @@
       // Remember what they carry as the default for their next trip.
       profile = Object.assign(profile || {}, { carry_types: row.carry_types });
       sb.from('profiles').update({ carry_types: row.carry_types }).eq('id', user.id).then(()=>{}, ()=>{});
-      resetForm();
-      say('ok', 'contact.tripSent', null, [t('ok.openStatus'), '#r' + data.id]);
+      resetForm(); cStatus.hidden = true;
+      $('tripCard').hidden = true; $('tripDone').hidden = false; $('tripDoneLink').href = '#r' + data.id;
+      window.scrollTo({top: 0, behavior: reduce ? 'auto' : 'smooth'});
     } catch(err){ say('err', saveErrKey(err)); }
     finally { btn.disabled = false; }
   });
+
+  // The "List your trip" page (#trip?...), opened from the top card's "I'm traveling" tab.
+  function openTripPage(){
+    $('tripCard').hidden = false; $('tripDone').hidden = true;
+    const q = new URLSearchParams(location.hash.replace(/^#trip\??/, ''));
+    if(q.get('dir')){ const r = cForm.querySelector(`input[name=dir][value="${q.get('dir') === 'from' ? 'from' : 'to'}"]`); if(r) r.checked = true; }
+    if(HOME_BY_ID.has(q.get('home'))) cForm.home.value = q.get('home');
+    if(q.get('city')) cForm.city.value = q.get('city');
+    if(Number(q.get('kg')) > 0) cForm.space.value = q.get('kg');
+    if(/^\d{4}-\d{2}-\d{2}$/.test(q.get('date') || '')) $('c-flight').value = q.get('date');
+    setFormDir(); prefillContact();
+    setTimeout(() => $(cForm.city.value ? 'c-flight' : 'c-city').focus({preventScroll: true}), 50);
+  }
 
   // ---------- step 2 in the top card: item details for the chosen traveler ----------
   const sForm = $('sendForm'), sStatus = $('sendStatus');
@@ -652,14 +670,8 @@
       location.hash = findHash({ dir: heroDir, city, home: $('h-home').value, type, kg: String(kg), by: $('h-date').value });
       return;
     }
-    // "I'm traveling": fill in the trip form in the Contact section.
-    cForm.querySelector(`input[name=dir][value="${heroDir}"]`).checked = true;
-    cForm.home.value = $('h-home').value; setFormDir();
-    cForm.city.value = city;
-    if($('h-kg').value) cForm.space.value = $('h-kg').value;
-    if($('h-date').value) $('c-flight').value = $('h-date').value;
-    $('contact').scrollIntoView({behavior: reduce?'auto':'smooth'});
-    setTimeout(()=>$('c-name').focus({preventScroll:true}), reduce ? 0 : 500);
+    // "I'm traveling": open the "List your trip" page, filled in.
+    location.hash = '#trip?' + new URLSearchParams(Object.entries({ dir: heroDir, home: $('h-home').value, city, kg: $('h-kg').value, date: $('h-date').value }).filter(([, v]) => v)).toString();
   });
   ['h-city', 'h-type', 'h-weight', 'h-kg', 'h-date'].forEach(id => $(id).addEventListener('input', ()=>{ $('bookErr').hidden = true; }));
 
@@ -710,6 +722,7 @@
     if(btn) btn.disabled = true;
     const { error } = await sb.from('search_alerts').insert(row);
     if(error){ if(btn) btn.disabled = false; return sayIn(st, 'err', String(error.message).includes('alert_limit') ? 'find.alertLimit' : 'find.alertErr'); }
+    if(btn) btn.remove();
     sayIn(st, 'ok', 'find.alertSaved', {email: user.email}, [t('find.alertManage'), '#account']);
   }
   async function searchTrips(q){

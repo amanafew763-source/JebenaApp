@@ -220,7 +220,6 @@
           <ul class="ticks">
             <li data-i18n="aud.send.1">Send a single item, like medicine, a phone or school supplies.</li>
             <li data-i18n="aud.send.2">Book a traveler's whole bag: you cover the airline's checked-bag fee plus the traveler's fee.</li>
-            <li data-i18n-html="aud.send.3">Check the <a class="inline-link" href="rules.html#items" target="_blank" rel="noopener">rules and prohibited items</a> before you post.</li>
           </ul>
         </article>
         <article class="aud travel">
@@ -271,16 +270,28 @@
     <div class="wrap contact-grid">
       <div class="contact-copy">
         <span class="eyebrow" data-i18n="contact.eyebrow">Contact</span>
-        <h2 id="contact-title" data-i18n="contact.tripTitle">Traveling soon? List your trip</h2>
-        <p class="lead" data-i18n="contact.tripLead">Flying between Ethiopia and the diaspora? Tell us when and how much room you have. People who need something carried find your trip and ask you; you accept or decline each item.</p>
-        <p class="note" data-i18n="contact.sendNote">Need something carried? Start with the search at the top of the page.</p>
+        <h2 id="contact-title" data-i18n="contact.qTitle">Questions? We're here to help</h2>
+        <p class="lead" data-i18n="contact.qLead">Need something carried, or traveling soon? Start at the top of the page. For anything else, email us.</p>
+        <p><a class="btn btn-primary" href="#home" data-i18n="contact.toTop">Go to the search</a></p>
         <dl class="info-list">
           <dt data-i18n="info.routes">Routes</dt><dd data-i18n="info.routesVal">Ethiopia ⇄ the diaspora, both directions</dd>
           <dt data-i18n="info.response">Response</dt><dd data-i18n="info.responseVal">Within 1 business day</dd>
           <dt data-i18n="info.questions">Questions</dt><dd><a class="inline-link" href="mailto:hello@jebenaexpress.example">hello@jebenaexpress.example</a></dd>
         </dl>
       </div>
-      <div class="form-card">
+    </div>
+  </section>
+
+  <!-- ============ LIST YOUR TRIP (travelers) ============ -->
+  <div id="tripWrap" class="wrap" hidden>
+    <section class="send-view trip-view" aria-labelledby="trip-title">
+      <a class="back-link" href="#home" data-i18n="find.back">← Back to the home page</a>
+      <div class="stack" style="gap:6px">
+        <span class="eyebrow" data-i18n="trip.eyebrow">For travelers</span>
+        <h2 id="trip-title" data-i18n="contact.tripTitle">Traveling soon? List your trip</h2>
+        <p class="lead" data-i18n="contact.tripLead">Flying between Ethiopia and the diaspora? Tell us when and how much room you have. People who need something carried find your trip and ask you; you accept or decline each item.</p>
+      </div>
+      <div class="form-card" id="tripCard">
         <form id="contactForm" novalidate>
           <div class="hp" aria-hidden="true"><label for="c-website">Website</label><input id="c-website" name="website" tabindex="-1" autocomplete="off"></div>
           <fieldset class="role-seg">
@@ -327,8 +338,14 @@
           <div id="contactStatus" class="status" role="status" hidden></div>
         </form>
       </div>
-    </div>
-  </section>
+      <div class="send-card send-done" id="tripDone" hidden>
+        <span class="t-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+        <h3 data-i18n="trip.doneTitle">Your trip is listed</h3>
+        <p class="note" data-i18n="contact.tripSent">Your trip is listed. People sending items you carry can now find it, and we’ll email you when someone asks.</p>
+        <div class="actions"><a class="btn btn-primary btn-sm" id="tripDoneLink" href="#account" data-i18n="ok.openStatus">Open its status page</a><a class="btn btn-ghost btn-sm" href="#home" data-i18n="find.back">← Back to the home page</a></div>
+      </div>
+    </section>
+  </div>
 
   <!-- ============ STATUS PAGE (one request) ============ -->
   <div id="statusWrap" class="wrap" hidden>
@@ -446,7 +463,7 @@
       <article class="card">
         <div class="card-head">
           <div><h3 data-i18n="acct.myRequests">My requests</h3><p class="sub" data-i18n="acct.myRequestsSub">Requests you've sent, newest first.</p></div>
-          <a class="btn btn-primary btn-sm" href="#contact" data-i18n="acct.new">New request</a>
+          <a class="btn btn-primary btn-sm" href="#home" data-i18n="acct.new">New request</a>
         </div>
         <div id="myRequests" class="my-list"></div>
       </article>

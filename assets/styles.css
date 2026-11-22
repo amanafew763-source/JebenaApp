@@ -404,7 +404,7 @@ td.nowrap{white-space:nowrap}
 .auth-links{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
 .code-input{font:700 1.5rem var(--body)!important;letter-spacing:.35em;text-align:center;font-variant-numeric:tabular-nums}
 #authCaptcha:empty{display:none}
-.btn[disabled]{opacity:.6;cursor:progress}
+.btn[disabled]{opacity:.6;cursor:default}
 body.account-mode main > :not(#accountWrap){display:none}
 body.account-mode footer{display:none}
 #accountWrap{padding-block:32px 80px}
@@ -656,3 +656,8 @@ body.send-mode main > :not(#sendWrap){display:none}
 .progress li.now{background:var(--green);color:var(--on-green)}
 .progress li.now span{background:var(--on-green);color:var(--green)}
 @media (max-width: 600px){ .progress li b{display:none} .progress li.now b{display:inline} }
+
+/* ---------- 22 Nov 2026 (5): trip page, simpler Contact ---------- */
+body.trip-mode main > :not(#tripWrap){display:none}
+#contact .contact-grid{grid-template-columns:minmax(0,1fr)}
+#contact .contact-copy{max-width:720px}

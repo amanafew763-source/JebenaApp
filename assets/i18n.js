@@ -731,3 +731,9 @@ Object.assign(window.JEBENA_I18N.de, {
   'send.goneTitle':'Diese Reise ist nicht mehr verfügbar',
   'send.gone':'Sie ist vielleicht voll, oder das Flugdatum ist vorbei. Sieh dir die anderen Reisenden an.'
 });
+
+// ---------- 22 Nov 2026 (5): trip page, simpler Contact ----------
+Object.assign(window.JEBENA_I18N.en, { 'trip.eyebrow':'For travelers', 'trip.doneTitle':'Your trip is listed',
+  'contact.qTitle':'Questions? We’re here to help', 'contact.qLead':'Need something carried, or traveling soon? Start at the top of the page. For anything else, email us.', 'contact.toTop':'Go to the search' });
+Object.assign(window.JEBENA_I18N.de, { 'trip.eyebrow':'Für Reisende', 'trip.doneTitle':'Deine Reise ist eingetragen',
+  'contact.qTitle':'Fragen? Wir helfen gern', 'contact.qLead':'Du möchtest etwas transportieren lassen oder bist bald unterwegs? Starte oben auf der Seite. Für alles andere schreib uns eine E-Mail.', 'contact.toTop':'Zur Suche' });

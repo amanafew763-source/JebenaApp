@@ -89,7 +89,7 @@ Everyone who needs something carried starts in the top card on the home page:
 
 Anyone can search. Results show only a first name, rating, flight date, route and free space. If nobody fits, logged-in people can choose **"Email me when a traveler matches"**; the email function writes to them when a fitting trip is posted (at most once a day per alert). They manage alerts under **My account**.
 
-The **Contact** section is for travelers only (**List your trip**), with the email address for questions. Travelers choose what they'll carry on each trip; the choice is remembered on their profile (**My account → What I'm willing to carry**).
+Travelers use the "I'm traveling" tab in the same top card, which opens a separate **List your trip** page (`#trip?...`). The **Contact** section only has the email address for questions. Travelers choose what they'll carry on each trip; the choice is remembered on their profile (**My account → What I'm willing to carry**).
 
 ## Setup
 
