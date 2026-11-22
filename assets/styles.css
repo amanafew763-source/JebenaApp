@@ -517,3 +517,51 @@ a.my-item:hover{border-color:var(--green)}
 .notes textarea{min-height:60px;flex:1 1 260px}
 .chip.accepted{background:var(--info-soft);color:var(--info-ink)}
 .chip.handed_over{background:var(--gold-soft);color:var(--warn-ink)}
+
+/* ---------- 22 Nov 2026: city picker and rules pop-up ---------- */
+.book-field.fixed label{font:700 .72rem var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.book-field select.home-select{border:0;background:transparent;padding:2px 0;margin:0;font:700 1.02rem var(--body);color:var(--ink);width:100%;border-radius:0;cursor:pointer;min-width:0;text-overflow:ellipsis}
+.book-field select.home-select:focus{outline:none;box-shadow:none}
+.book-field select.home-select option,.book-field select.home-select optgroup{background:var(--surface);color:var(--ink)}
+.route-two{align-items:start}
+.route-two .field{min-width:0}
+.ico.ok{background:var(--green-soft);color:var(--green)}
+
+.rules-teaser{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.teaser-card{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px;cursor:pointer;color:var(--ink);font:inherit;transition:border-color .2s,transform .2s}
+.teaser-card:hover{border-color:var(--green);transform:translateY(-2px)}
+.teaser-card:focus-visible{outline:3px solid var(--green-soft);border-color:var(--green)}
+.teaser-card b{font:700 1.05rem var(--body)}
+.teaser-card span:not(.t-ico){color:var(--muted);font-size:.92rem;line-height:1.45}
+.t-ico{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:var(--green-soft);color:var(--green);margin-bottom:4px}
+.t-ico svg{width:20px;height:20px}
+.t-ico.no{background:var(--danger-soft);color:var(--danger-ink)}
+.never-short{display:flex;gap:10px;align-items:flex-start;margin:18px 0 16px;font-size:.95rem;line-height:1.5;color:var(--ink)}
+#items .wrap > div:last-child{margin-top:4px}
+
+/* rules page (rules.html, opens in its own tab) */
+a.teaser-card{text-decoration:none}
+.rules-top-actions{display:flex;align-items:center;gap:6px}
+.back-site{font:600 .92rem var(--body);color:var(--ink);text-decoration:none;padding:9px 12px;border-radius:10px}
+.back-site:hover{background:var(--surface-2)}
+.rules-main{padding-block:clamp(36px,6vw,72px) clamp(56px,8vw,96px);display:flex;flex-direction:column;gap:22px}
+.rules-main .section-head{margin-bottom:0}
+.rules-main h1{font:800 clamp(2rem,5vw,3.2rem)/1.05 var(--display, inherit);letter-spacing:-.02em;margin:0}
+.rules-jump{display:flex;flex-wrap:wrap;gap:6px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.rules-jump a{font:600 .9rem var(--body);color:var(--ink);text-decoration:none;background:var(--surface-2);border-radius:999px;padding:7px 15px}
+.rules-jump a:hover{background:var(--green-soft);color:var(--green)}
+.rules-sec{display:flex;flex-direction:column;gap:14px;scroll-margin-top:calc(var(--header-h) + 20px);padding-top:10px}
+.rules-sec h2{font-size:clamp(1.4rem,3vw,1.9rem);margin:0}
+.rules-sec h4{font:700 1.05rem var(--body);margin:0 0 4px}
+.rules-sec .panel{margin-top:0}
+.rules-sec:target h2{color:var(--green)}
+.rules-list{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:10px;font-size:1rem;line-height:1.55;max-width:760px}
+.rules-list li::marker{color:var(--green);font-weight:700}
+#dirTabs button{background:transparent;border-color:var(--line-strong)}
+#dirTabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+@media (max-width: 860px){ .rules-teaser{grid-template-columns:1fr} }
+@media (max-width: 600px){
+  .route-two{grid-template-columns:1fr}
+  .back-site{display:none}
+}

@@ -20,7 +20,7 @@ type Deps = { fetch: typeof fetch; env: Env };
 type Lang = 'en' | 'de';
 
 type Req = {
-  id: number; created_at: string; role: 'sender' | 'traveler'; direction: 'to_addis' | 'from_addis';
+  id: number; created_at: string; role: 'sender' | 'traveler'; direction: 'to_addis' | 'from_addis'; home_city?: string | null;
   city: string; details: string; contact_name: string; contact_email: string; lang: Lang; status: string;
   fee_usd: number | null; flight_date: string | null; space_kg: number | null;
   item_type: string | null; weight_kg: number | null; ready_date: string | null; needed_by: string | null;
@@ -28,7 +28,7 @@ type Req = {
 type Match = { id: number; status: string; sender_request_id: number; traveler_request_id: number };
 type Mail = { subject: string; html: string; text: string };
 
-const REQ_COLS = 'id,created_at,role,direction,city,details,contact_name,contact_email,lang,status,fee_usd,flight_date,space_kg,item_type,weight_kg,ready_date,needed_by';
+const REQ_COLS = 'id,created_at,role,direction,city,home_city,details,contact_name,contact_email,lang,status,fee_usd,flight_date,space_kg,item_type,weight_kg,ready_date,needed_by';
 
 const TEXT = {
   en: {
@@ -83,9 +83,10 @@ const langOf = (r: Req): Lang => r.lang === 'de' ? 'de' : 'en';
 const fmtDate = (d: string | null, lang: Lang) => d ? new Date(d + 'T12:00:00Z').toLocaleDateString(lang === 'de' ? 'de-DE' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }) : '';
 const fmtKg = (n: number | null, lang: Lang) => n == null ? '' : `${Number(n).toLocaleString(lang === 'de' ? 'de-DE' : 'en-US')} kg`;
 
-export function routeOf(r: Pick<Req, 'direction' | 'city'>, lang: Lang) {
-  const addis = TEXT[lang].addis;
-  return r.direction === 'from_addis' ? `${addis} → ${r.city}` : `${r.city} → ${addis}`;
+// The Ethiopia end of the route (older rows have no home_city: Addis Ababa).
+export function routeOf(r: Pick<Req, 'direction' | 'city' | 'home_city'>, lang: Lang) {
+  const home = !r.home_city || r.home_city === 'Addis Ababa' ? TEXT[lang].addis : r.home_city;
+  return r.direction === 'from_addis' ? `${home} → ${r.city}` : `${r.city} → ${home}`;
 }
 const statusLink = (siteUrl: string, id: number) => siteUrl ? `${siteUrl.replace(/\/$/, '')}/#r${id}` : '';
 

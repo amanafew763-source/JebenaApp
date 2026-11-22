@@ -309,43 +309,43 @@
   $('logoutBtn3').addEventListener('click', logout);
   $('changePwBtn').addEventListener('click', ()=>openAuth('change'));
 
-  // ---------- route & customs rules ----------
-  const addisName = () => t('place.addis');
-  const routeLabel = (dir, city) => dir === 'from' ? addisName() + ' → ' + city : city + ' → ' + addisName();
-  const GOVUK_ET = ['GOV.UK: Ethiopia entry requirements', 'https://www.gov.uk/foreign-travel-advice/ethiopia/entry-requirements'];
-  const DIR_RULES = {
-    to: { en: [
-      'Drones, satellite phones and binoculars need approval from Ethiopian customs and the Information Network Security Agency before travel. Without it they can be confiscated.',
-      'Filming and professional audio equipment may face extra customs checks.',
-      'Ivory in any form is illegal to bring in.',
-      'Cash over US$10,000 must be declared. No more than 3,000 birr can be brought in.'
-    ], de: [
-      'Drohnen, Satellitentelefone und Ferngläser brauchen vor der Reise eine Genehmigung des äthiopischen Zolls und der Information Network Security Agency. Ohne Genehmigung können sie beschlagnahmt werden.',
-      'Film- und professionelle Audiotechnik kann zusätzlich vom Zoll kontrolliert werden.',
-      'Elfenbein ist in jeder Form verboten.',
-      'Bargeld über 10.000 US-Dollar muss angemeldet werden. Es dürfen höchstens 3.000 Birr eingeführt werden.'
-    ], sources: [GOVUK_ET] },
-    from: { en: [
-      'Khat is legal in Ethiopia but illegal to take out of the country.',
-      'Antiques need an export certificate. Without one they are likely to be confiscated, and the traveler could be arrested.',
-      'Drones, satellite phones and binoculars need prior approval to take out, just as they do to bring in.',
-      'Ivory in any form is illegal to own or carry.',
-      'No more than 3,000 birr in cash can be taken out of Ethiopia.',
-      'The destination country’s customs rules apply on arrival too, especially for food such as coffee, spices and teff.'
-    ], de: [
-      'Khat ist in Äthiopien legal, darf aber nicht ausgeführt werden.',
-      'Antiquitäten brauchen eine Ausfuhrbescheinigung. Ohne sie werden sie wahrscheinlich beschlagnahmt, und der reisenden Person droht eine Festnahme.',
-      'Drohnen, Satellitentelefone und Ferngläser brauchen auch für die Ausfuhr eine vorherige Genehmigung.',
-      'Elfenbein ist in jeder Form verboten.',
-      'Es dürfen höchstens 3.000 Birr in bar aus Äthiopien ausgeführt werden.',
-      'Bei der Ankunft gelten zusätzlich die Zollregeln des Ziellandes, besonders für Lebensmittel wie Kaffee, Gewürze und Teff.'
-    ], sources: [GOVUK_ET,
-      ['German customs: traveller allowances', 'https://www.zoll.de/EN/Private-individuals/Travel/Entering-Germany/Duties-and-taxes/Travellers-allowances/travellers-allowances.html'],
-      ['U.S. Customs and Border Protection: travel', 'https://www.cbp.gov/travel']] }
-  };
+  // ---------- places, routes & customs rules ----------
+  // The Ethiopia end of a route. "id" is what the database stores
+  // (keep in step with public.home_country in supabase/schema.sql).
+  const HOMES = [
+    { id: 'Addis Ababa', c: 'ET', de: 'Addis Abeba', note: 'ADD · Bole' },
+    { id: 'Dire Dawa', c: 'ET' }, { id: 'Adigrat', c: 'ET' }, { id: 'Arba Minch', c: 'ET' },
+    { id: 'Asosa', c: 'ET' }, { id: 'Bahir Dar', c: 'ET' }, { id: 'Bonga', c: 'ET' }, { id: 'Gambela', c: 'ET' },
+    { id: 'Harar', c: 'ET' }, { id: 'Hawassa', c: 'ET' }, { id: 'Hosaena', c: 'ET' }, { id: 'Jijiga', c: 'ET' },
+    { id: 'Jimma', c: 'ET' }, { id: 'Mekelle', c: 'ET' }, { id: 'Semera', c: 'ET' }, { id: 'Shire', c: 'ET' },
+    { id: 'Wolaita Sodo', c: 'ET' }
+  ];
+  const HOME_BY_ID = new Map(HOMES.map(h => [h.id, h]));
+  const COUNTRIES = [...new Set(HOMES.map(h => h.c))];   // just Ethiopia for now
+  const DEFAULT_HOME = 'Addis Ababa';
+  const homeOf = id => HOME_BY_ID.get(id) || HOME_BY_ID.get(DEFAULT_HOME);
+  const homeName = id => { const h = homeOf(id); return (lang === 'de' && h.de) || h.id; };
+  const countryOf = id => homeOf(id).c;
+  const countryName = c => t('country.' + c);
+  const routeLabel = (dir, city, home) => dir === 'from' ? homeName(home) + ' → ' + city : city + ' → ' + homeName(home);
+  // Fill a <select> with the cities, grouped by country; keeps the current choice.
+  function fillHomeSelect(sel){
+    const cur = sel.value || DEFAULT_HOME;
+    sel.innerHTML = '';
+    COUNTRIES.forEach(c=>{
+      const g = document.createElement('optgroup'); g.label = countryName(c);
+      HOMES.filter(h => h.c === c).forEach(h=>{ const o = document.createElement('option'); o.value = h.id; o.textContent = homeName(h.id); g.appendChild(o); });
+      sel.appendChild(g);
+    });
+    sel.value = HOME_BY_ID.has(cur) ? cur : DEFAULT_HOME;
+  }
+
+  // Customs rules live in assets/rules-data.js (shared with rules.html).
+  const RULES = window.JEBENA_RULES;
   const CARE_ICON = '<span class="ico care" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M8 4v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="8" cy="12" r="1.2" fill="currentColor"/></svg></span>';
-  function rulesList(dir){
-    const R = DIR_RULES[dir], frag = document.createDocumentFragment(), ul = document.createElement('ul');
+  const dirLabel = (dir, c) => t('dir.' + dir, {c: countryName(c)});
+  function rulesList(c, dir){
+    const R = RULES[c][dir], frag = document.createDocumentFragment(), ul = document.createElement('ul');
     (R[lang] || R.en).forEach(s=>{ const li = document.createElement('li'); li.textContent = s; ul.appendChild(li); });
     const src = document.createElement('p'); src.className = 'src'; src.append(t('rules.source'));
     R.sources.forEach(([label, url], i)=>{
@@ -355,21 +355,24 @@
     frag.append(ul, src); return frag;
   }
   const destAlert = $('destAlert');
-  function updateDestAlert(dir){
+  function updateDestAlert(c, dir){
     destAlert.innerHTML = ''; destAlert.hidden = false; destAlert.className = 'alert';
-    const h = document.createElement('strong'); h.innerHTML = CARE_ICON; h.append(t('rules.forDir', {d: t('dir.' + dir)}));
-    destAlert.append(h, rulesList(dir));
+    const h = document.createElement('strong'); h.innerHTML = CARE_ICON; h.append(t('rules.forDir', {d: dirLabel(dir, c)}));
+    const more = document.createElement('a'); more.href = 'rules.html?dir=' + dir + '#items'; more.target = '_blank'; more.rel = 'noopener'; more.className = 'inline-link'; more.textContent = t('rules.seeAll');
+    const p = document.createElement('p'); p.className = 'src'; p.appendChild(more);
+    destAlert.append(h, rulesList(c, dir), p);
   }
-  const tabs = $('countryTabs'), rulesPanel = $('countryRules');
-  let shownDir = 'to';
-  function showRules(dir){
-    shownDir = dir;
-    tabs.querySelectorAll('button').forEach(b=>{ b.setAttribute('aria-selected', String(b.dataset.c===dir)); b.textContent = t('dir.' + b.dataset.c); });
-    rulesPanel.innerHTML = ''; rulesPanel.appendChild(rulesList(dir));
-  }
-  ['to','from'].forEach(dir=>{
-    const b = document.createElement('button'); b.type = 'button'; b.setAttribute('role','tab'); b.dataset.c = dir;
-    b.addEventListener('click', ()=>showRules(dir)); tabs.appendChild(b);
+
+  // ---------- rules page: opens in its own window ----------
+  // Links to rules.html open a separate browser window (re-used on later clicks).
+  // If the browser blocks it, or on phones, the link just opens a new tab.
+  document.addEventListener('click', e=>{
+    const a = e.target.closest('a[href^="rules.html"]');
+    if(!a || e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+    const w = Math.min(960, screen.availWidth - 40), h = Math.min(860, screen.availHeight - 60);
+    const left = Math.max(0, Math.round((screen.availWidth - w) / 2)), top = Math.max(0, Math.round((screen.availHeight - h) / 3));
+    const win = window.open(a.href, 'jebenaRules', `popup=yes,width=${w},height=${h},left=${left},top=${top}`);
+    if(win){ e.preventDefault(); try{ win.focus(); }catch(err){} }
   });
 
   // ---------- request form ----------
@@ -383,11 +386,14 @@
 
   function placeNames(){
     const city = cForm.city.value.trim() || t('form.yourCity');
-    return cForm.dir.value === 'from' ? { ho: addisName(), pu: city } : { ho: city, pu: addisName() };
+    const home = homeName(cForm.home.value);
+    return cForm.dir.value === 'from' ? { ho: home, pu: city } : { ho: city, pu: home };
   }
   function setFormDir(){
-    const dir = cForm.dir.value;
+    const dir = cForm.dir.value, home = cForm.home.value;
     $('c-city-label').textContent = t(dir === 'from' ? 'form.cityLabel.from' : 'form.cityLabel.to');
+    $('dirToText').textContent = t('form.dirTo', {home: homeName(home)});
+    $('dirFromText').textContent = t('form.dirFrom', {home: homeName(home)});
     $('c-city').placeholder = t('form.cityPh');
     const p = placeNames();
     $('hoSub').textContent = t('form.hoSub', {place: p.ho});
@@ -395,7 +401,7 @@
     // Sensible default: you usually hand the item over yourself when sending to Addis,
     // and pick it up yourself when it comes from Addis.
     if(!meTouched){ setMe('ho', dir === 'to'); setMe('pu', dir === 'from'); }
-    updateDestAlert(dir);
+    updateDestAlert(countryOf(home), dir);
   }
   function setRoleUI(){
     const traveler = isTraveler();
@@ -419,6 +425,7 @@
   }
   ['ho', 'pu'].forEach(w => $('c-' + w + '-me').addEventListener('change', e => { meTouched = true; setMe(w, e.target.checked); }));
   ['name', 'phone'].forEach(f => cForm[f].addEventListener('input', () => ['ho', 'pu'].forEach(w => { if($('c-' + w + '-me').checked) $('c-' + w + '-' + f).value = cForm[f].value; })));
+  cForm.home.addEventListener('change', setFormDir);
   cForm.city.addEventListener('input', () => { const p = placeNames(); $('hoSub').textContent = t('form.hoSub', {place: p.ho}); $('puSub').textContent = t('form.puSub', {place: p.pu}); });
 
   function setDateLimits(){
@@ -520,7 +527,7 @@
     const v = k => cForm[k].value.trim();
     const row = {
       role: traveler ? 'traveler' : 'sender',
-      direction: cForm.dir.value === 'from' ? 'from_addis' : 'to_addis',
+      direction: cForm.dir.value === 'from' ? 'from_addis' : 'to_addis', home_city: cForm.home.value,
       city: v('city'), details: v('message'),
       contact_name: v('name'), contact_email: v('email'), contact_phone: v('phone'),
       agreed_prohibited: true, lang
@@ -561,18 +568,21 @@
     $('addisField').style.order = toAddis ? 3 : 1;
     $('h-city-label').textContent = t(toAddis ? 'hero.from' : 'hero.to');
     $('addisLabel').textContent = t(toAddis ? 'hero.to' : 'hero.from');
+    $('h-home-note').textContent = homeOf($('h-home').value).note || countryName(countryOf($('h-home').value));
     $('swapBtn').classList.toggle('flipped', !toAddis);
   }
   $('tabSend').addEventListener('click', ()=>setHeroRole('Sender'));
   $('tabTravel').addEventListener('click', ()=>setHeroRole('Traveler'));
   $('swapBtn').addEventListener('click', ()=>setHeroDir(heroDir === 'to' ? 'from' : 'to'));
+  $('h-home').addEventListener('change', ()=>setHeroDir(heroDir));
   $('h-city').addEventListener('input', ()=>{ $('bookErr').hidden = true; });
   $('bookForm').addEventListener('submit', e=>{
     e.preventDefault();
     const city = $('h-city').value.trim();
     if(!city){ const err = $('bookErr'); err.textContent = t('hero.errCity'); err.hidden = false; $('h-city').focus(); return; }
     cForm.querySelector(`input[name=role][value="${heroRole}"]`).checked = true; setAgreeText();
-    cForm.querySelector(`input[name=dir][value="${heroDir}"]`).checked = true; setFormDir();
+    cForm.querySelector(`input[name=dir][value="${heroDir}"]`).checked = true;
+    cForm.home.value = $('h-home').value; setFormDir();
     cForm.city.value = city;
     const what = $('h-what').value.trim();
     if(what) cForm.message.value = t(heroRole==='Sender' ? 'form.prefixSend' : 'form.prefixSpace') + what;
@@ -637,10 +647,10 @@
   const lbl = k => { const key = 'lbl.' + k; const s = t(key); return s === key ? k : s; };
   const typeName = k => k ? t('type.' + k) : '—';
   const telLink = p => `<a href="tel:${esc(String(p).replace(/[^\d+]/g, ''))}">${esc(p)}</a>`;
-  const REQ_COLS = 'id, user_id, created_at, role, direction, city, details, contact_name, contact_email, contact_phone, status, fee_usd, flight_date, space_kg, item_type, weight_kg, ready_date, needed_by';
+  const REQ_COLS = 'id, user_id, created_at, role, direction, city, home_city, details, contact_name, contact_email, contact_phone, status, fee_usd, flight_date, space_kg, item_type, weight_kg, ready_date, needed_by';
   const fromDb = r => ({ id: r.id, at: Date.parse(r.created_at), name: r.contact_name, email: r.contact_email, phone: r.contact_phone,
     role: r.role === 'traveler' ? 'Traveler' : 'Sender', dir: r.direction === 'from_addis' ? 'from' : 'to',
-    city: r.city, message: r.details, status: r.status, fee: r.fee_usd, userId: r.user_id,
+    city: r.city, home: r.home_city || DEFAULT_HOME, message: r.details, status: r.status, fee: r.fee_usd, userId: r.user_id,
     flight: r.flight_date, space: r.space_kg == null ? null : Number(r.space_kg), itemType: r.item_type,
     weight: r.weight_kg == null ? null : Number(r.weight_kg), ready: r.ready_date, needed: r.needed_by });
   const summary = r => r.role === 'Traveler'
@@ -682,7 +692,7 @@
     box.innerHTML = '';
     data.map(fromDb).forEach(r=>{
       const item = el('a', 'my-item'); item.href = '#r' + r.id;
-      item.innerHTML = `<div><div class="mi-route">${esc(routeLabel(r.dir, r.city))}</div>
+      item.innerHTML = `<div><div class="mi-route">${esc(routeLabel(r.dir, r.city, r.home))}</div>
         <div class="mi-meta">${esc(t('role.' + r.role))} · ${esc(summary(r))} · ${esc(t('acct.sentOn', {d: fmtDate(r.at)}))}</div></div>
         <span class="chip ${esc(r.status)}">${esc(t('st.' + r.status))}</span>
         <div class="mi-details">${esc(r.message)}</div>`;
@@ -721,7 +731,7 @@
   function head(r, eyebrowKey){
     const h = el('div', 'st-head');
     h.innerHTML = `<div class="stack" style="gap:6px"><span class="eyebrow">${esc(t(eyebrowKey, {id: r.id}))}</span>
-      <h2>${esc(routeLabel(r.direction === 'from_addis' ? 'from' : 'to', r.city))}</h2></div>
+      <h2>${esc(routeLabel(r.direction === 'from_addis' ? 'from' : 'to', r.city, r.home_city))}</h2></div>
       <span class="chip ${esc(r.status)}">${esc(t('st.' + r.status))}</span>`;
     return h;
   }
@@ -783,6 +793,10 @@
         <div class="two">${field('st.hoName', 'handover_name', 'text', r.handover_name)}${field('st.hoPhone', 'handover_phone', 'tel', r.handover_phone)}</div>
         <div class="two">${field('st.puName', 'pickup_name', 'text', r.pickup_name)}${field('st.puPhone', 'pickup_phone', 'tel', r.pickup_phone)}</div>`;
     }
+    // The city in Ethiopia can change too.
+    const homeLbl = el('label', null, `<span>${esc(t('form.homeLabel'))}</span>`), homeSel = document.createElement('select');
+    homeSel.name = 'home_city'; homeSel.value = ''; fillHomeSelect(homeSel); homeSel.value = r.home_city || DEFAULT_HOME;
+    homeLbl.appendChild(homeSel); f.prepend(homeLbl);
     f.insertAdjacentHTML('beforeend', `<label><span>${esc(t(r.role === 'traveler' ? 'form.msgTrip' : 'form.msgItem'))}</span><textarea name="details" maxlength="2000">${esc(r.details)}</textarea></label>
       <div class="actions"><button class="btn btn-primary btn-sm" type="submit">${esc(t('st.save'))}</button><button class="btn btn-ghost btn-sm" type="button" data-cancel>${esc(t('st.cancelEdit'))}</button></div>`);
     f.querySelector('[data-cancel]').addEventListener('click', onDone);
@@ -831,7 +845,7 @@
       r.needed_by && ['st.neededBy', esc(fmtDay(r.needed_by))], ['st.details', esc(r.details)]]));
     left.appendChild(ci);
     // The people
-    const dir = r.direction === 'from_addis' ? 'from' : 'to', places = dir === 'from' ? {ho: addisName(), pu: r.city} : {ho: r.city, pu: addisName()};
+    const dir = r.direction === 'from_addis' ? 'from' : 'to', home = homeName(r.home_city), places = dir === 'from' ? {ho: home, pu: r.city} : {ho: r.city, pu: home};
     const cp = card('st.people');
     cp.appendChild(kv([[t('st.hoIn', {place: places.ho}), `${esc(r.handover_name)}<br>${telLink(r.handover_phone)}`],
                        [t('st.puIn', {place: places.pu}), `${esc(r.pickup_name)}<br>${telLink(r.pickup_phone)}`]]));
@@ -886,7 +900,7 @@
         <div>${esc(it.details)}</div>`;
       body.appendChild(kv([['form.ready', esc(fmtDay(it.ready_date))], it.needed_by && ['st.neededBy', esc(fmtDay(it.needed_by))],
         ['st.requester', esc(it.requester_name || it.requester_first_name) + ' · ' + esc(ratingText(it.requester_rating))]]));
-      const places = it.direction === 'from_addis' ? {ho: addisName(), pu: it.city} : {ho: it.city, pu: addisName()};
+      const itHome = homeName(it.home_city), places = it.direction === 'from_addis' ? {ho: itHome, pu: it.city} : {ho: it.city, pu: itHome};
       if(it.match_status !== 'proposed'){
         body.appendChild(kv([['form.phone', telLink(it.requester_phone)], ['form.email', `<a href="mailto:${esc(it.requester_email)}">${esc(it.requester_email)}</a>`],
           [t('st.hoIn', {place: places.ho}), `${esc(it.handover_name)} · ${telLink(it.handover_phone)}`],
@@ -966,14 +980,16 @@
       ['Samuel Kebede','Sender','to','Seattle','Phone and charger for my father','Handy und Ladegerät für meinen Vater','delivered',6.4,25],
       ['Liya Tadesse','Sender','from','Frankfurt','Two handwoven netela scarves for my cousins','Zwei handgewebte Netela-Schals für meine Cousinen','delivered',8.1,20],
       ['Yonas Haile','Traveler','to','Frankfurt','Flying Dec 2 from Frankfurt, half a suitcase free','Abflug 2. Dez. ab Frankfurt, halber Koffer frei','waiting',9.0,null]
-    ].map(([name,role,dir,city,en,de,status,ago,fee])=>({name, email: name.split(' ')[0].toLowerCase()+'@example.com', role, dir, city, message: lang==='de'?de:en, status, fee, at: now - ago*DAY}));
-    const rt = (dir, city) => routeLabel(dir, city);
+    ].map(([name,role,dir,city,en,de,status,ago,fee], i)=>({name, email: name.split(' ')[0].toLowerCase()+'@example.com', role, dir, city,
+      home: ['Addis Ababa','Addis Ababa','Bahir Dar','Mekelle','Gambela','Addis Ababa','Dire Dawa','Hawassa','Adigrat','Jimma'][i],
+      message: lang==='de'?de:en, status, fee, at: now - ago*DAY}));
+    const rt = (dir, city, home) => routeLabel(dir, city, home);
     return {
       days, visitors, orders, totalV, totalO, avgTime: 168, conversion: totalO/totalV,
       senders, travelers, match: {rate: 0.64, days: 3.2},
       funnel: {visits: totalV, started: Math.round(totalO/0.45), submitted: totalO},
       delivered, fees, cut: fees*0.15,
-      dests: split(totalO, [[rt('to','Washington DC'),31],[rt('to','Frankfurt'),14],[rt('from','Washington DC'),12],[rt('to','London'),10],[rt('from','Frankfurt'),8],[t('lbl.otherRoutes'),25]]),
+      dests: split(totalO, [[rt('to','Washington DC','Addis Ababa'),31],[rt('to','Frankfurt','Addis Ababa'),14],[rt('from','Washington DC','Addis Ababa'),12],[rt('to','London','Hawassa'),10],[rt('to','Frankfurt','Mekelle'),8],[t('lbl.otherRoutes'),25]]),
       sources: split(totalV, [['WhatsApp',38],['Facebook',24],['Google',17],[lbl('Direct'),13],['Instagram',6],['TikTok',2]]),
       locations: split(totalV, [[lbl('United States'),52],[lbl('Ethiopia'),14],[lbl('Canada'),9],[lbl('United Kingdom'),7],[lbl('Germany'),5],[t('lbl.otherCountries'),13]]),
       devices: split(totalV, [[lbl('Phone'),78],[lbl('Desktop'),18],[lbl('Tablet'),4]]),
@@ -1084,7 +1100,7 @@
       match: items.length ? {rate: matched/items.length, days: null} : null,
       funnel: {visits: V.length, started, submitted: R.length},
       delivered: done.length, fees, cut: fees*0.15,
-      dests: countBy(R, r=>routeLabel(r.dir, r.city)).slice(0,6),
+      dests: countBy(R, r=>routeLabel(r.dir, r.city, r.home)).slice(0,6),
       sources: countBy(V, v=>lbl(v.source || 'Direct')).slice(0,6),
       locations: countBy(V, v=>(v.time_zone || t('lbl.unknownTz')).replace(/_/g,' ')).slice(0,6),
       devices: countBy(V, v=>lbl(v.device || 'Desktop')),
@@ -1110,7 +1126,7 @@
   function filteredRows(rows){
     const q = $('f-q').value.trim().toLowerCase(), st = $('f-status').value, ty = $('f-type').value, dir = $('f-dir').value;
     return rows.filter(r => (!st || r.status === st) && (!ty || r.role === ty) && (!dir || r.dir === dir) &&
-      (!q || [r.name, r.email, r.phone, r.city, r.message, String(r.id), r.itemType && typeName(r.itemType)].some(x => x && String(x).toLowerCase().includes(q))));
+      (!q || [r.name, r.email, r.phone, r.city, r.home, homeName(r.home), r.message, String(r.id), r.itemType && typeName(r.itemType)].some(x => x && String(x).toLowerCase().includes(q))));
   }
   ['f-q', 'f-status', 'f-type', 'f-dir'].forEach(id => $(id).addEventListener('input', () => { if(lastD) drawOrders(lastD); }));
 
@@ -1150,7 +1166,7 @@
       td('nowrap').textContent = fmtDate(m.at);
       const who = td(); who.textContent = m.name; who.appendChild(el('small', null, esc(m.email))); if(m.phone) who.appendChild(el('small', null, esc(m.phone)));
       td('nowrap').textContent = t('role.' + (m.role || 'Sender'));
-      td('nowrap').textContent = routeLabel(m.dir, m.city);
+      td('nowrap').textContent = routeLabel(m.dir, m.city, m.home);
       const det = td('details'); det.textContent = m.message;
       if(m.itemType || m.flight) det.appendChild(el('small', null, esc(summary(m))));
       const stCell = td(), feeCell = td('nowrap'), notesCell = td('nowrap');
@@ -1183,10 +1199,10 @@
   }
   $('exportCsv').addEventListener('click', () => {
     if(!lastD) return;
-    const cols = ['id', 'created_at', 'type', 'direction', 'city', 'status', 'name', 'email', 'phone', 'item_type', 'weight_kg', 'ready_date', 'needed_by', 'flight_date', 'space_kg', 'fee_usd', 'details'];
+    const cols = ['id', 'created_at', 'type', 'direction', 'home_city', 'diaspora_city', 'status', 'name', 'email', 'phone', 'item_type', 'weight_kg', 'ready_date', 'needed_by', 'flight_date', 'space_kg', 'fee_usd', 'details'];
     const cell = v => { v = v == null ? '' : String(v); return /[",\n;]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
     const lines = [cols.join(',')].concat(filteredRows(lastD.orderRows).map(r => [r.id, new Date(r.at).toISOString(), r.role === 'Traveler' ? 'trip' : 'item',
-      r.dir === 'from' ? 'from_addis' : 'to_addis', r.city, r.status, r.name, r.email, r.phone, r.itemType, r.weight, r.ready, r.needed, r.flight, r.space, r.fee, r.message].map(cell).join(',')));
+      r.dir === 'from' ? 'from' : 'to', r.home, r.city, r.status, r.name, r.email, r.phone, r.itemType, r.weight, r.ready, r.needed, r.flight, r.space, r.fee, r.message].map(cell).join(',')));
     const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
     const a = el('a'); a.href = URL.createObjectURL(blob); a.download = `jebena-express-requests-${todayISO()}.csv`;
     document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
@@ -1245,7 +1261,7 @@
   function matchMsg(kind, key, vars){ const m = $('matchMsg'); m.className = 'status ' + kind; m.textContent = t(key, vars); m.hidden = false; }
   function matchErrKey(err){
     const m = String((err && err.message) || '');
-    for(const code of ['match_same_account', 'match_same_email', 'match_sender_taken', 'match_wrong_direction', 'match_closed', 'match_needs_confirm',
+    for(const code of ['match_same_account', 'match_same_email', 'match_sender_taken', 'match_wrong_direction', 'match_wrong_country', 'match_closed', 'match_needs_confirm',
                        'match_not_found', 'match_dates', 'match_no_space', 'match_trip_past', 'match_handed_over'])
       if(m.includes(code)) return 'm.err.' + code.replace('match_', '');
     return 'm.err.generic';
@@ -1279,28 +1295,30 @@
     trips.forEach(tr=>{
       const used = usedKg(tr.id), left = Math.max(0, (tr.space || 0) - used);
       const box = el('div', 'trip');
-      box.innerHTML = `<div class="trip-head"><div><b>${esc(tr.name)}</b> <span class="muted">${esc(routeLabel(tr.dir, tr.city))}</span></div>
+      box.innerHTML = `<div class="trip-head"><div><b>${esc(tr.name)}</b> <span class="muted">${esc(routeLabel(tr.dir, tr.city, tr.home))}</span></div>
         <span class="muted">${esc(t('m.flight', {d: fmtDay(tr.flight)}))} · ${esc(t('m.spaceLeft', {left: fmtKg(left), total: fmtKg(tr.space)}))}</span></div>
         <div class="trip-details">${esc(tr.message)}</div>`;
       const list = el('div', 'cands');
-      const same = items.filter(s => s.dir === tr.dir);
+      // Same direction and same country; other cities are flagged.
+      const same = items.filter(s => s.dir === tr.dir && countryOf(s.home) === countryOf(tr.home));
       const hiddenSelf = same.filter(s => samePerson(s, tr));
       const fits = s => s.ready <= addDays(tr.flight, -1) && (!s.needed || s.needed >= tr.flight) && (s.weight || 0) <= left + 1e-9;
       const others = same.filter(s => !samePerson(s, tr));
       const noFit = others.filter(s => !fits(s));
       const cands = others.filter(fits)
-        .sort((a, b) => (normCity(b.city) === normCity(tr.city)) - (normCity(a.city) === normCity(tr.city)) || a.at - b.at)
+        .sort((a, b) => (b.home === tr.home) - (a.home === tr.home) || (normCity(b.city) === normCity(tr.city)) - (normCity(a.city) === normCity(tr.city)) || a.at - b.at)
         .slice(0, 8);
       if(!cands.length) list.appendChild(el('div', 'cand-empty', esc(t('m.noCands'))));
       cands.forEach(s=>{
-        const cityOk = normCity(s.city) === normCity(tr.city), nameAlike = normName(s.name) === normName(tr.name);
-        const flags = [cityOk ? `<span class="flag good">${esc(t('m.sameCity'))}</span>` : `<span class="flag warn">${esc(t('m.otherCity', {c: s.city}))}</span>`];
+        const cityOk = normCity(s.city) === normCity(tr.city), homeOk = s.home === tr.home, nameAlike = normName(s.name) === normName(tr.name);
+        const flag = (ok, c) => ok ? `<span class="flag good">${esc(t('m.sameCity', {c}))}</span>` : `<span class="flag warn">${esc(t('m.otherCity', {c}))}</span>`;
+        const flags = [flag(homeOk, homeName(s.home)), flag(cityOk, s.city)];
         if(nameAlike) flags.push(`<span class="flag warn">${esc(t('m.sameName'))}</span>`);
         const row = el('div', 'cand');
-        row.innerHTML = `<div><div class="who">${esc(s.name)} <span class="muted">· ${esc(routeLabel(s.dir, s.city))}</span></div>
+        row.innerHTML = `<div><div class="who">${esc(s.name)} <span class="muted">· ${esc(routeLabel(s.dir, s.city, s.home))}</span></div>
           <div class="what">${esc(summary(s))}${s.needed ? ' · ' + esc(t('m.neededBy', {d: fmtDay(s.needed)})) : ''} · ${esc(s.message)}</div><div class="flags">${flags.join('')}</div></div>`;
         const btn = button('m.match', 'btn-primary');
-        if(!cityOk || nameAlike) twoStep(btn, 'm.confirm', ()=>doMatch(s, tr, true));
+        if(!cityOk || !homeOk || nameAlike) twoStep(btn, 'm.confirm', ()=>doMatch(s, tr, true));
         else btn.addEventListener('click', ()=>doMatch(s, tr, false));
         row.appendChild(btn); list.appendChild(row);
       });
@@ -1316,7 +1334,7 @@
     pairs.forEach(({ m, s, tr })=>{
       const state = s.status === 'handed_over' ? 'handed_over' : m.status === 'accepted' ? 'accepted' : 'matched';
       const row = el('div', 'pair', `<div><b>${esc(s.name)}</b> → <b>${esc(tr.name)}</b> <span class="chip ${state}">${esc(t(m.status === 'proposed' ? 'm.st.proposed' : state === 'handed_over' ? 'm.st.carrying' : 'm.st.accepted'))}</span>
-        <div class="pr-route">${esc(routeLabel(s.dir, s.city))} · ${esc(summary(s))} · ${esc(t('m.matchedOn', {d: fmtDate(Date.parse(m.created_at))}))}</div></div>`);
+        <div class="pr-route">${esc(routeLabel(s.dir, s.city, s.home))} · ${esc(summary(s))} · ${esc(t('m.matchedOn', {d: fmtDate(Date.parse(m.created_at))}))}</div></div>`);
       if(s.status !== 'handed_over'){
         const btn = button('m.cancel'); twoStep(btn, 'm.cancelConfirm', ()=>undoMatch(m.id));
         row.appendChild(btn);
@@ -1406,9 +1424,9 @@
     applyStatic();
     if(!sb) $('sysbar').textContent = t('backend.off');
     setMenu(nav.dataset.open === 'true');
+    fillHomeSelect($('h-home')); fillHomeSelect(cForm.home);
     setHeroRole(heroRole); setHeroDir(heroDir);
     setRoleUI(); setFormDir();
-    showRules(shownDir);
     setStepCaption(Math.max(0, lastStep));
     $('bookErr').hidden = true; cStatus.hidden = true;
     renderAuthButtons(); prefillContact();

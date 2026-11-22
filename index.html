@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Jebena Express</title>
-<meta name="description" content="Send items between Addis Ababa and the diaspora with travelers who have spare room in their luggage.">
+<meta name="description" content="Send items between Ethiopia and the diaspora with travelers who have spare room in their luggage.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Noto+Sans+Ethiopic:wght@500;600&display=swap">
@@ -47,7 +47,7 @@
         <div class="hero-copy">
           <span class="pill"><span class="geez" lang="am">ወደ ቤት</span><span data-i18n="hero.pill">Send it home</span></span>
           <h1 id="home-title" data-i18n-html="hero.title">Your package, in a suitcase <em>already going home.</em></h1>
-          <p class="lead" data-i18n="hero.lead">Jebena Express matches people sending items between Addis Ababa and the diaspora with travelers who have spare room in their luggage. You agree on the fee up front, and the item is picked up in person.</p>
+          <p class="lead" data-i18n="hero.lead">Jebena Express matches people sending items between Ethiopia and the diaspora with travelers who have spare room in their luggage. You agree on the fee up front, and the item is picked up in person.</p>
 
           <form class="book" id="bookForm" novalidate>
             <div class="book-tabs" role="tablist" aria-label="I want to" data-i18n-aria="hero.tabsLabel">
@@ -65,9 +65,9 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4L3 8l4 4"/><path d="M3 8h13"/><path d="M17 20l4-4-4-4"/><path d="M21 16H8"/></svg>
               </button>
               <div class="book-field fixed" id="addisField">
-                <span class="lbl" id="addisLabel">To</span>
-                <b data-i18n="place.addis">Addis Ababa</b>
-                <small>ADD · Bole</small>
+                <label for="h-home" id="addisLabel">To</label>
+                <select id="h-home" class="home-select"></select>
+                <small id="h-home-note">ADD · Bole</small>
               </div>
             </div>
             <div class="book-row what-row">
@@ -119,7 +119,7 @@
         </div>
       </div>
 
-      <p class="route-note"><span class="live-dot" aria-hidden="true"></span><span data-i18n-html="routeNote">Now serving one route: <b>Addis Ababa ⇄ the diaspora</b>, in both directions.</span></p>
+      <p class="route-note"><span class="live-dot" aria-hidden="true"></span><span data-i18n-html="routeNote">Now serving <b>Ethiopia ⇄ the diaspora</b>: Addis Ababa and 16 more cities, in both directions.</span></p>
     </div>
   </section>
 
@@ -129,7 +129,7 @@
       <div class="section-head">
         <span class="eyebrow" data-i18n="about.eyebrow">About us</span>
         <h2 id="about-title" data-i18n="about.title">How it works</h2>
-        <p class="lead" data-i18n="about.lead">Shipping a box between Addis Ababa and Washington, London or Frankfurt can cost more than what's inside it and take weeks. Meanwhile, people fly that route every day with half-empty suitcases. We put the two together.</p>
+        <p class="lead" data-i18n="about.lead">Shipping a box between Ethiopia and Washington, London or Frankfurt can cost more than what's inside it and take weeks. Meanwhile, people fly that route every day with half-empty suitcases. We put the two together.</p>
       </div>
       <div class="how-grid">
         <div class="how-visual" aria-hidden="true">
@@ -186,7 +186,7 @@
           <article class="step on">
             <span class="num">1</span>
             <h3 data-i18n="step1.title">Post your item</h3>
-            <p data-i18n="step1.text">Tell us what you're sending, roughly how much it weighs, and whether it's going to Addis Ababa or coming from it. A phone for your father, school supplies, coffee and berbere for your sister abroad: if it's allowed through customs, it can go.</p>
+            <p data-i18n="step1.text">Tell us what you're sending, roughly how much it weighs, and which city in Ethiopia it's going to or coming from. A phone for your father, school supplies, coffee and berbere for your sister abroad: if it's allowed through customs, it can go.</p>
           </article>
           <article class="step">
             <span class="num">2</span>
@@ -196,7 +196,7 @@
           <article class="step">
             <span class="num">3</span>
             <h3 data-i18n="step3.title">Picked up in person</h3>
-            <p data-i18n="step3.text">The traveler lands and the recipient collects the item in person, whether that's your mother in Addis Ababa or you in Frankfurt. Like the first cup of buna poured for a guest, it arrives by hand.</p>
+            <p data-i18n="step3.text">The traveler lands and the recipient collects the item in person, whether that's your mother in Addis Ababa, your uncle in Hawassa or you in Frankfurt. Like the first cup of buna poured for a guest, it arrives by hand.</p>
           </article>
         </div>
       </div>
@@ -208,7 +208,7 @@
           <ul class="ticks">
             <li data-i18n="aud.send.1">Send a single item, like medicine, a phone or school supplies.</li>
             <li data-i18n="aud.send.2">Book a traveler's whole bag: you cover the airline's checked-bag fee plus the traveler's fee.</li>
-            <li data-i18n-html="aud.send.3">Check the <a class="inline-link" href="#items">prohibited items list</a> before you post.</li>
+            <li data-i18n-html="aud.send.3">Check the <a class="inline-link" href="rules.html#items" target="_blank" rel="noopener">rules and prohibited items</a> before you post.</li>
           </ul>
         </article>
         <article class="aud travel">
@@ -224,44 +224,33 @@
     </div>
   </section>
 
-  <!-- ============ PROHIBITED ITEMS ============ -->
+  <!-- ============ RULES (teaser; the full rules open in a pop-up) ============ -->
   <section id="items" class="section" aria-labelledby="items-title">
     <div class="wrap">
       <div class="section-head">
         <span class="eyebrow" data-i18n="items.eyebrow">Before you pack</span>
-        <h2 id="items-title" data-i18n="items.title">What travelers can't carry</h2>
+        <h2 id="items-title" data-i18n="items.teaserTitle">Rules that keep everyone safe</h2>
         <p class="lead" data-i18n="items.lead">Travelers are personally responsible for everything in their suitcase when they go through customs. These rules protect them and keep your item from being seized at the airport.</p>
       </div>
-      <div class="rule-grid">
-        <div class="rule-card">
-          <h3><span class="ico no" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span data-i18n="items.never">Never accepted</span></h3>
-          <ul>
-            <li data-i18n="never.1">Weapons, ammunition, and replicas or parts of them</li>
-            <li data-i18n="never.2">Explosives, fireworks, flammable liquids, spray paint and gas canisters</li>
-            <li data-i18n="never.3">Drugs and controlled substances, including khat</li>
-            <li data-i18n="never.4">Counterfeit or pirated goods</li>
-            <li data-i18n="never.5">Ivory and other wildlife products</li>
-            <li data-i18n-html="never.6">Cash, gold and jewelry <small>(our policy: travelers don't carry money or valuables for others)</small></li>
-            <li data-i18n-html="never.7">Sealed packages the traveler can't open and inspect <small>(our policy)</small></li>
-          </ul>
-        </div>
-        <div class="rule-card">
-          <h3><span class="ico care" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M8 4v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="8" cy="12" r="1.2" fill="currentColor"/></svg></span><span data-i18n="items.care">Allowed with care</span></h3>
-          <ul>
-            <li data-i18n-html="care.1"><b>Power banks and spare batteries</b> must go in the traveler's carry-on, never in checked bags.</li>
-            <li data-i18n-html="care.2"><b>Medicine</b> stays in its original packaging with a copy of the prescription.</li>
-            <li data-i18n-html="care.3"><b>Food</b>, including coffee, spices and teff, should be sealed and labeled. Fresh meat, dairy, fruit and plants are often stopped at customs.</li>
-            <li data-i18n-html="care.4"><b>Electronics</b> may need to be declared on arrival, and duty can apply.</li>
-            <li data-i18n-html="care.5"><b>Several of the same new item</b> can look like goods for sale and may be charged import duty.</li>
-          </ul>
-        </div>
+      <div class="rules-teaser">
+        <a class="teaser-card" href="rules.html#customers" target="_blank" rel="noopener">
+          <span class="t-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg></span>
+          <b data-i18n="rules.tab.customers">Customer rules</b>
+          <span data-i18n="teaser.customers">How handover, pickup codes and fees work</span>
+        </a>
+        <a class="teaser-card" href="rules.html#items" target="_blank" rel="noopener">
+          <span class="t-ico no" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg></span>
+          <b data-i18n="rules.tab.items">Prohibited items</b>
+          <span data-i18n="teaser.items">What's never accepted, plus Ethiopia's customs rules</span>
+        </a>
+        <a class="teaser-card" href="rules.html#travelers" target="_blank" rel="noopener">
+          <span class="t-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="7" width="12" height="13" rx="2"/><path d="M9 7V4h6v3M10 11v5M14 11v5"/></svg></span>
+          <b data-i18n="rules.tab.travelers">What travelers can't carry</b>
+          <span data-i18n="teaser.travelers">And what every traveler checks before packing</span>
+        </a>
       </div>
-      <div class="panel">
-        <div><h3 data-i18n="rules.title">Ethiopia customs rules</h3><p class="note" data-i18n="rules.sub">The rules depend on which way the item is going. Pick a direction.</p></div>
-        <div class="country-tabs" role="tablist" aria-label="Direction" data-i18n-aria="rules.tabsLabel" id="countryTabs"></div>
-        <div id="countryRules" role="tabpanel" aria-live="polite"></div>
-        <p class="note" data-i18n="rules.note">Rules change and customs officers have the final say. Last checked October 2026. Confirm with the embassy before you travel.</p>
-      </div>
+      <p class="never-short"><span class="ico no" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span data-i18n="teaser.never">Never accepted: weapons, drugs (including khat), cash, gold and jewelry, counterfeit goods, and sealed packages the traveler can't inspect.</span></p>
+      <div><a class="btn btn-primary" href="rules.html" target="_blank" rel="noopener"><span data-i18n="teaser.btn">See all rules</span> <span aria-hidden="true">↗</span></a></div>
     </div>
   </section>
 
@@ -273,7 +262,7 @@
         <h2 id="contact-title" data-i18n="contact.title">Get started</h2>
         <p class="lead" data-i18n="contact.lead">Tell us what you're sending or where you're flying. We'll get back to you with a match or a question.</p>
         <dl class="info-list">
-          <dt data-i18n="info.routes">Routes</dt><dd data-i18n="info.routesVal">Addis Ababa ⇄ the diaspora, both directions</dd>
+          <dt data-i18n="info.routes">Routes</dt><dd data-i18n="info.routesVal">Ethiopia ⇄ the diaspora, both directions</dd>
           <dt data-i18n="info.response">Response</dt><dd data-i18n="info.responseVal">Within 1 business day</dd>
           <dt data-i18n="info.email">Email</dt><dd>hello@jebenaexpress.example</dd>
         </dl>
@@ -288,14 +277,20 @@
           </fieldset>
           <fieldset class="role-seg">
             <legend data-i18n="form.dir">Direction</legend>
-            <label for="c-dir-to"><input type="radio" id="c-dir-to" name="dir" value="to" checked><span data-i18n="form.dirTo">To Addis Ababa</span></label>
-            <label for="c-dir-from"><input type="radio" id="c-dir-from" name="dir" value="from"><span data-i18n="form.dirFrom">From Addis Ababa</span></label>
+            <label for="c-dir-to"><input type="radio" id="c-dir-to" name="dir" value="to" checked><span id="dirToText">To Addis Ababa</span></label>
+            <label for="c-dir-from"><input type="radio" id="c-dir-from" name="dir" value="from"><span id="dirFromText">From Addis Ababa</span></label>
           </fieldset>
-          <div class="field">
-            <label for="c-city" id="c-city-label">Coming from</label>
-            <input id="c-city" name="city" required autocomplete="address-level2" aria-describedby="cityHint">
-            <span id="cityHint" class="hint" data-i18n="form.cityHint">The city outside Ethiopia where the trip starts or ends.</span>
+          <div class="two route-two">
+            <div class="field">
+              <label for="c-home" data-i18n="form.homeLabel">City in Ethiopia</label>
+              <select id="c-home" name="home"></select>
+            </div>
+            <div class="field">
+              <label for="c-city" id="c-city-label">Coming from</label>
+              <input id="c-city" name="city" required autocomplete="address-level2" aria-describedby="cityHint">
+            </div>
           </div>
+          <span id="cityHint" class="hint" data-i18n="form.cityHint">Pick the city in Ethiopia, then type the city in the diaspora where the trip starts or ends.</span>
           <div id="destAlert" class="alert" role="status" hidden></div>
 
           <!-- Trip details (travelers) -->
@@ -451,7 +446,7 @@
           <label for="f-type"><span class="sr" data-i18n="th.type">Type</span>
             <select id="f-type" class="cell-input"><option value="" data-i18n="o.allTypes">All types</option><option value="Sender" data-i18n="role.Sender">Item</option><option value="Traveler" data-i18n="role.Traveler">Trip</option></select></label>
           <label for="f-dir"><span class="sr" data-i18n="form.dir">Direction</span>
-            <select id="f-dir" class="cell-input"><option value="" data-i18n="o.allDirs">Both directions</option><option value="to" data-i18n="form.dirTo">To Addis Ababa</option><option value="from" data-i18n="form.dirFrom">From Addis Ababa</option></select></label>
+            <select id="f-dir" class="cell-input"><option value="" data-i18n="o.allDirs">Both directions</option><option value="to" data-i18n="o.dirTo">To Ethiopia</option><option value="from" data-i18n="o.dirFrom">From Ethiopia</option></select></label>
         </div>
         <div class="table-wrap">
           <table>
@@ -472,7 +467,7 @@
       <small><span data-i18n="footer.tag">Carrying home, one suitcase at a time</span> · <span class="geez" lang="am">እንኳን ደህና መጡ</span> · <span data-i18n="footer.demo">Demo site</span></small>
     </div>
     <nav aria-label="Footer">
-      <a href="#home" data-i18n="nav.home">Home</a><a href="#about" data-i18n="nav.about">About Us</a><a href="#items" data-i18n="footer.items">Prohibited items</a><a href="#contact" data-i18n="nav.contact">Contact</a>
+      <a href="#home" data-i18n="nav.home">Home</a><a href="#about" data-i18n="nav.about">About Us</a><a href="rules.html" target="_blank" rel="noopener" data-i18n="footer.items">Rules &amp; prohibited items</a><a href="#contact" data-i18n="nav.contact">Contact</a>
     </nav>
   </div>
 </footer>
@@ -513,6 +508,7 @@
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
 <script src="assets/i18n.js"></script>
+<script src="assets/rules-data.js"></script>
 <script src="assets/app.js"></script>
 </body>
 </html>

@@ -26,7 +26,7 @@
 
 -- ---------- types ----------
 create type public.request_role   as enum ('sender', 'traveler');   -- sender = "I need something carried"
-create type public.request_dir    as enum ('to_addis', 'from_addis');
+create type public.request_dir    as enum ('to_addis', 'from_addis');  -- to / from Ethiopia (names kept from the Addis-only days)
 create type public.request_status as enum ('new', 'waiting', 'matched', 'accepted', 'handed_over', 'delivered', 'cancelled');
 create type public.item_type      as enum ('clothes', 'medicine', 'electronics', 'documents', 'food', 'other');
 
@@ -62,13 +62,27 @@ returns boolean language sql stable security definer set search_path = '' as $$
   select coalesce((select coalesce(u.encrypted_password, '') <> '' from auth.users u where u.id = auth.uid()), false);
 $$;
 
+-- ---------- home cities (the Ethiopia end of a route) ----------
+-- Returns the country code ('ET') for a city we serve, null otherwise. Keep this list in
+-- step with HOMES in assets/app.js.
+create function public.home_country(p text)
+returns text language sql immutable set search_path = '' as $$
+  select case
+    when p in ('Addis Ababa', 'Adigrat', 'Arba Minch', 'Asosa', 'Bahir Dar', 'Bonga', 'Dire Dawa', 'Gambela', 'Harar',
+               'Hawassa', 'Hosaena', 'Jijiga', 'Jimma', 'Mekelle', 'Semera', 'Shire', 'Wolaita Sodo') then 'ET'
+  end;
+$$;
+
+grant execute on function public.home_country(text) to anon, authenticated;
+
 -- ---------- requests ----------
 create table public.requests (
   id                 bigint generated always as identity primary key,
   user_id            uuid not null default auth.uid() references auth.users (id) on delete cascade,
   role               public.request_role not null,
   direction          public.request_dir not null,
-  city               text not null check (char_length(btrim(city)) between 2 and 80),   -- the city outside Ethiopia
+  city               text not null check (char_length(btrim(city)) between 2 and 80),   -- the city in the diaspora
+  home_city          text not null default 'Addis Ababa' check (public.home_country(home_city) is not null),  -- the city in Ethiopia
   details            text not null check (char_length(btrim(details)) between 3 and 2000),
   contact_name       text not null check (char_length(btrim(contact_name)) between 1 and 120),
   contact_email      text not null check (contact_email ~* '^[^@\s]+@[^@\s]+\.[^@\s]+$' and char_length(contact_email) <= 254),
@@ -241,6 +255,7 @@ begin
   if s.id is null or tr.id is null then raise exception 'match_not_found'; end if;
   if s.role <> 'sender' or tr.role <> 'traveler' then raise exception 'match_wrong_roles'; end if;
   if s.direction <> tr.direction then raise exception 'match_wrong_direction'; end if;
+  if public.home_country(s.home_city) <> public.home_country(tr.home_city) then raise exception 'match_wrong_country'; end if;
   if s.status not in ('new', 'waiting') or tr.status not in ('new', 'waiting', 'matched') then raise exception 'match_closed'; end if;
   if exists (select 1 from public.matches m where m.sender_request_id = s.id and m.status in ('proposed', 'accepted')) then
     raise exception 'match_sender_taken';
@@ -265,10 +280,11 @@ begin
      or regexp_replace(s.contact_phone, '[^0-9]', '', 'g') = regexp_replace(tr.contact_phone, '[^0-9]', '', 'g') then
     raise exception 'match_same_email';
   end if;
-  -- Look-alike names or different cities need an explicit confirmation.
+  -- Look-alike names or different cities (at either end) need an explicit confirmation.
   if not coalesce(p_confirm, false) and (
        public.norm_name(s.contact_name) = public.norm_name(tr.contact_name)
-       or lower(btrim(s.city)) <> lower(btrim(tr.city))) then
+       or lower(btrim(s.city)) <> lower(btrim(tr.city))
+       or s.home_city <> tr.home_city) then
     raise exception 'match_needs_confirm';
   end if;
 
@@ -388,6 +404,7 @@ begin
   update public.requests set
     details        = coalesce(p ->> 'details', details),
     city           = coalesce(p ->> 'city', city),
+    home_city      = coalesce(p ->> 'home_city', home_city),
     contact_phone  = coalesce(p ->> 'contact_phone', contact_phone),
     flight_date    = case when role = 'traveler' and p ? 'flight_date' then (p ->> 'flight_date')::date else flight_date end,
     space_kg       = case when role = 'traveler' and p ? 'space_kg' then (p ->> 'space_kg')::numeric else space_kg end,
@@ -496,7 +513,7 @@ begin
   if r.role = 'sender' then
     v_out := v_out || jsonb_build_object('match', (
       select jsonb_build_object(
-               'id', m.id, 'status', m.status, 'flight_date', t.flight_date,
+               'id', m.id, 'status', m.status, 'flight_date', t.flight_date, 'trip_home_city', t.home_city,
                'traveler_first_name', split_part(btrim(t.contact_name), ' ', 1),
                'traveler_rating', public.user_rating(t.user_id),
                'rated', exists (select 1 from public.ratings x where x.match_id = m.id and x.rater_id = auth.uid()))
@@ -516,7 +533,7 @@ begin
                    'handed_over', m.handed_over_at is not null, 'code_attempts', m.code_attempts,
                    'item_type', s.item_type, 'details', s.details, 'weight_kg', s.weight_kg,
                    'ready_date', s.ready_date, 'needed_by', s.needed_by, 'photo_path', s.photo_path,
-                   'city', s.city, 'direction', s.direction,
+                   'city', s.city, 'home_city', s.home_city, 'direction', s.direction,
                    'requester_first_name', split_part(btrim(s.contact_name), ' ', 1),
                    'requester_rating', public.user_rating(s.user_id),
                    'rated', exists (select 1 from public.ratings x where x.match_id = m.id and x.rater_id = auth.uid()))
@@ -618,7 +635,7 @@ grant select on public.profiles to authenticated;
 grant update (full_name) on public.profiles to authenticated;     -- never is_admin
 
 grant select on public.requests to authenticated;
-grant insert (role, direction, city, details, contact_name, contact_email, contact_phone, agreed_prohibited, lang,
+grant insert (role, direction, city, home_city, details, contact_name, contact_email, contact_phone, agreed_prohibited, lang,
               flight_date, space_kg, item_type, weight_kg, ready_date, needed_by, photo_path,
               handover_name, handover_phone, pickup_name, pickup_phone)
   on public.requests to authenticated;

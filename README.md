@@ -1,6 +1,6 @@
 # Jebena Express
 
-Jebena Express matches people sending items between **Addis Ababa and the diaspora** with travelers who have spare room in their luggage. The site is in English and German.
+Jebena Express matches people sending items between **Ethiopia and the diaspora** with travelers who have spare room in their luggage. The site is in English and German.
 
 It is a static website (HTML, CSS and JavaScript) that talks directly to **Supabase** for accounts and data. There is no server to run.
 
@@ -60,6 +60,23 @@ All access rules live in the database (`supabase/schema.sql`), not in the browse
 The public key in `config.js` is designed to be visible. It only allows what the rules above allow. **Never put the `service_role` or secret key in this repo.**
 
 ---
+
+## Cities in Ethiopia
+
+Every request has a city at each end: one in the diaspora (typed freely) and one in Ethiopia (picked from a list): Addis Ababa, Dire Dawa, the regional capitals (Asosa, Bahir Dar, Bonga, Gambela, Harar, Hawassa, Hosaena, Jijiga, Mekelle, Semera, Wolaita Sodo), plus Adigrat, Arba Minch, Jimma and Shire.
+
+
+Matching: a different city (a Jimma item on an Addis trip) is shown with a yellow flag and needs a second click.
+
+**To add a city**, change both lists, which must stay identical: `HOMES` in `assets/app.js` and `public.home_country` in `supabase/schema.sql`. On a live database, run the new `create or replace function public.home_country …` in the SQL Editor.
+
+### Updating a database that already exists
+
+`schema.sql` is for new projects. When the database is already running, run the matching file in `supabase/updates/` once instead, in date order. Each one keeps existing data:
+
+- `2026-11-22-cities.sql`: adds the Ethiopian city (existing requests become Addis Ababa).
+
+The rules (customer rules, prohibited items, customs, what travelers can't carry) live on their own page, `rules.html`, which the site opens in its own window (or a new tab if the browser blocks windows, and on phones). The customs rules themselves are in `assets/rules-data.js`.
 
 ## Setup
 
