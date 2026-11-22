@@ -609,3 +609,50 @@ body.find-mode main > :not(#findWrap){display:none}
   .trip-pick{flex-wrap:wrap}
 }
 #findResults{display:flex;flex-direction:column;gap:28px}
+
+/* ---------- 22 Nov 2026 (3): two-step top card, alerts, back to top ---------- */
+.book-row.what-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+.book.trav .book-row.what-row .btn{grid-column:1/-1}
+.send-step{display:flex;flex-direction:column;gap:12px}
+.send-step .form-sub{margin:6px 0 0}
+.send-step label:not(.check){display:flex;flex-direction:column;gap:6px;font-size:.88rem;font-weight:600;min-width:0}
+.send-step .two,.send-step .three{display:grid;gap:10px}
+.send-step .two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.send-step .three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.send-step textarea{min-height:84px}
+.send-step .btn[type=submit]{align-self:flex-start}
+.send-step .trip-pick{margin-bottom:0}
+.send-summary{margin:0;font-size:.9rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.send-done{display:flex;flex-direction:column;gap:10px;align-items:flex-start;padding:22px}
+.send-done h3{font-size:1.3rem}
+.send-done .actions{display:flex;flex-wrap:wrap;gap:8px}
+.alert-ask{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.find-more{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);padding-top:16px}
+.find-filters{grid-template-columns:repeat(6,minmax(0,1fr)) auto}
+.alert-item .actions{display:flex;gap:8px;align-items:center}
+.to-top{position:fixed;right:max(16px, env(safe-area-inset-right));bottom:calc(18px + env(safe-area-inset-bottom));z-index:40;width:48px;height:48px;border-radius:50%;border:0;background:var(--green);color:var(--on-green);display:grid;place-items:center;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.18);opacity:0;visibility:hidden;transform:translateY(10px);transition:opacity .2s,transform .2s,visibility .2s}
+.to-top svg{width:22px;height:22px}
+.to-top.on{opacity:1;visibility:visible;transform:none}
+.to-top:hover{background:var(--green-hover)}
+.to-top:focus-visible{outline:3px solid var(--green-soft);outline-offset:3px}
+@media (prefers-reduced-motion: reduce){ .to-top{transition:none} }
+@media (max-width: 1100px){ .find-filters{grid-template-columns:repeat(3,minmax(0,1fr))} .find-filters .btn{grid-column:1/-1} }
+@media (max-width: 600px){
+  .send-step .two,.send-step .three,.find-filters{grid-template-columns:1fr}
+  .to-top{width:44px;height:44px;bottom:calc(14px + env(safe-area-inset-bottom))}
+}
+
+/* ---------- 22 Nov 2026 (4): Send page and progress ---------- */
+body.send-mode main > :not(#sendWrap){display:none}
+.send-view{padding-block:clamp(28px,5vw,56px) clamp(48px,7vw,88px);display:flex;flex-direction:column;gap:18px;max-width:820px}
+.send-card{background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:clamp(18px,3vw,28px);box-shadow:var(--shadow-lg, 0 12px 40px rgba(0,0,0,.06))}
+.send-card.send-done{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.progress{list-style:none;margin:0;padding:0;display:flex;gap:6px;flex-wrap:wrap;counter-reset:none}
+.progress li{display:flex;align-items:center;gap:8px;font-size:.88rem;color:var(--muted);padding:6px 12px 6px 6px;border-radius:999px;background:var(--surface-2)}
+.progress li span{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:.8rem;background:var(--surface);color:var(--muted)}
+.progress li b{font-weight:600}
+.progress li.done{color:var(--green)}
+.progress li.done span{background:var(--green-soft);color:var(--green)}
+.progress li.now{background:var(--green);color:var(--on-green)}
+.progress li.now span{background:var(--on-green);color:var(--green)}
+@media (max-width: 600px){ .progress li b{display:none} .progress li.now b{display:inline} }

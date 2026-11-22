@@ -3,6 +3,8 @@
 // Called by the database (supabase/email-notifications.sql):
 //   { event: 'insert' | 'update', request_id }        a request was created or its status changed
 //   { event: 'match_proposed' | 'match_cancelled', match_id }   an item was proposed to a trip, or that match was undone
+// When a new trip is posted it also emails people whose saved search ("Email me
+// when a traveler matches") fits it (public.claim_alerts_for_trip).
 // It loads the rows itself, emails the people involved in their language
 // (English or German) through Resend, alerts the admin about new requests,
 // and records every attempt in the notifications table.
@@ -26,6 +28,8 @@ type Req = {
   item_type: string | null; weight_kg: number | null; ready_date: string | null; needed_by: string | null;
 };
 type Match = { id: number; status: string; sender_request_id: number; traveler_request_id: number };
+type Alert = { alert_id: number; email: string; lang: Lang; direction: Req['direction']; home_city: string; city: string | null;
+               item_type: string; weight_kg: number | null; needed_by: string | null };
 type Mail = { subject: string; html: string; text: string };
 
 const REQ_COLS = 'id,created_at,role,direction,city,home_city,details,contact_name,contact_email,lang,status,fee_usd,flight_date,space_kg,item_type,weight_kg,ready_date,needed_by';
@@ -36,6 +40,8 @@ const TEXT = {
     neededBy: 'Needed by', flight: 'Flight date', space: 'Space', fee: 'Agreed fee', details: 'Details',
     button: 'Open the status page', hello: 'Hello {name},',
     footer: 'You’re getting this email because you used Jebena Express. Reply to this email if you have questions.',
+    alert: ['A traveler for your {type}: {route}', '{name} is flying {route} on {date} and is willing to carry {type}. Open the search to see the details and send your item with them.'],
+    alertButton: 'See travelers', alertHello: 'Hello,', alertOff: 'You asked us to email you when a traveler matches. You can delete this alert under My account.',
     types: { clothes: 'Clothes', medicine: 'Medicine', electronics: 'Electronics', documents: 'Documents', food: 'Food', other: 'Other' } as Record<string, string>,
     sender: {
       received: ['We got your request: {route}', 'Thanks for your request. We’ll look for a traveler on this route and email you at every step.'],
@@ -58,6 +64,8 @@ const TEXT = {
     neededBy: 'Benötigt bis', flight: 'Flugdatum', space: 'Platz', fee: 'Vereinbarte Gebühr', details: 'Details',
     button: 'Statusseite öffnen', hello: 'Hallo {name},',
     footer: 'Du bekommst diese E-Mail, weil du Jebena Express nutzt. Antworte einfach auf diese E-Mail, wenn du Fragen hast.',
+    alert: ['Reisende Person für deine {type}: {route}', '{name} fliegt am {date} {route} und nimmt {type} mit. Öffne die Suche, um die Details zu sehen und deinen Artikel mitzuschicken.'],
+    alertButton: 'Reisende ansehen', alertHello: 'Hallo,', alertOff: 'Du wolltest eine E-Mail, sobald eine reisende Person passt. Unter „Mein Konto“ kannst du diese Benachrichtigung löschen.',
     types: { clothes: 'Kleidung', medicine: 'Medikamente', electronics: 'Elektronik', documents: 'Dokumente', food: 'Lebensmittel', other: 'Sonstiges' } as Record<string, string>,
     sender: {
       received: ['Deine Anfrage ist eingegangen: {route}', 'Danke für deine Anfrage. Wir suchen eine reisende Person auf dieser Strecke und schicken dir bei jedem Schritt eine E-Mail.'],
@@ -155,6 +163,23 @@ export function travelerItemEmail(trip: Req, item: Req, kind: 'match_proposed' |
   return compose(lang, trip.contact_name, T.traveler[kind], routeOf(trip, lang), rows, statusLink(siteUrl, trip.id));
 }
 
+// Email to someone whose saved search fits a newly posted trip.
+export function alertEmail(a: Alert, trip: Req, siteUrl: string): Mail {
+  const lang: Lang = a.lang === 'de' ? 'de' : 'en', T = TEXT[lang];
+  const type = T.types[a.item_type] ?? a.item_type, typeIn = lang === 'de' ? type : type.toLowerCase();
+  const route = routeOf(trip, lang), name = trip.contact_name.trim().split(/\s+/)[0];
+  const subject = fill(T.alert[0], { type: typeIn, route });
+  const q = new URLSearchParams({ dir: a.direction === 'from_addis' ? 'from' : 'to', home: a.home_city, type: a.item_type });
+  if (a.city) q.set('city', a.city);
+  if (a.needed_by) q.set('by', a.needed_by);
+  if (a.weight_kg != null) q.set('kg', String(a.weight_kg));
+  const link = siteUrl ? `${siteUrl.replace(/\/$/, '')}/#find?${q}` : '';
+  const o = { title: subject, greeting: T.alertHello, intro: fill(T.alert[1], { name, route, date: fmtDate(trip.flight_date, lang), type: typeIn }),
+    rows: [[T.route, route], [T.flight, fmtDate(trip.flight_date, lang)], [T.space, fmtKg(trip.space_kg, lang)]] as [string, string][],
+    button: link ? [T.alertButton, link] as [string, string] : undefined, footer: T.alertOff };
+  return { subject, html: layout(o), text: plain(o) };
+}
+
 export function adminEmail(r: Req, siteUrl: string): Mail {
   const route = routeOf(r, 'en');
   const what = r.role === 'traveler' ? 'trip' : 'item request';
@@ -211,6 +236,12 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     const kind = kindFor(event, r);
     if (kind) jobs.push({ kind, to: r.contact_email, requestId: r.id, mail: requestEmail(r, kind, siteUrl) });
     if (event === 'insert' && admin) jobs.push({ kind: 'admin_new', to: admin, requestId: r.id, mail: adminEmail(r, siteUrl) });
+    if (event === 'insert' && r.role === 'traveler') {
+      // People waiting for a traveler like this one.
+      const res = await f(`${base}/rest/v1/rpc/claim_alerts_for_trip`, { method: 'POST', headers: dbHeaders(key), body: JSON.stringify({ p_trip: r.id }) });
+      const alerts = res.ok ? await res.json() as Alert[] : [];
+      for (const a of alerts) jobs.push({ kind: 'alert_match', to: a.email, requestId: r.id, mail: alertEmail(a, r, siteUrl) });
+    }
   } else if (event === 'match_proposed' || event === 'match_cancelled') {
     const id = Number(payload.match_id);
     if (!Number.isInteger(id)) return new Response('Bad request', { status: 400 });

@@ -64,5 +64,10 @@
       a.addEventListener('click', e => { e.preventDefault(); window.close(); });
     });
   }
+  // Back to top
+  const toTop = $('toTop'), reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const updateToTop = () => toTop.classList.toggle('on', window.scrollY > window.innerHeight * 0.9);
+  window.addEventListener('scroll', updateToTop, {passive: true});
+  toTop.addEventListener('click', () => window.scrollTo({top: 0, behavior: reduce ? 'auto' : 'smooth'}));
   apply();
 })();

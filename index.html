@@ -75,6 +75,10 @@
                 <label for="h-type" data-i18n="hero.whatSend">What are you sending?</label>
                 <select id="h-type" class="home-select"><option value="" data-i18n="form.typeChoose">Choose a type</option><option value="clothes" data-i18n="type.clothes">Clothes</option><option value="medicine" data-i18n="type.medicine">Medicine</option><option value="electronics" data-i18n="type.electronics">Electronics</option><option value="documents" data-i18n="type.documents">Documents</option><option value="food" data-i18n="type.food">Food</option><option value="other" data-i18n="type.other">Other</option></select>
               </div>
+              <div class="book-field" id="hWeightField">
+                <label for="h-weight" data-i18n="form.weight">Weight (kg)</label>
+                <input id="h-weight" type="number" min="0.1" max="100" step="0.1" inputmode="decimal" placeholder="2">
+              </div>
               <div class="book-field" id="hKgField" hidden>
                 <label for="h-kg" data-i18n="hero.whatTravel">Space you have</label>
                 <input id="h-kg" type="number" min="0.5" max="100" step="0.5" inputmode="decimal" placeholder="8 kg" data-i18n-ph="hero.kgPh">
@@ -267,27 +271,18 @@
     <div class="wrap contact-grid">
       <div class="contact-copy">
         <span class="eyebrow" data-i18n="contact.eyebrow">Contact</span>
-        <h2 id="contact-title" data-i18n="contact.title">Get started</h2>
-        <p class="lead" data-i18n="contact.lead">Tell us what you're sending or where you're flying. We'll get back to you with a match or a question.</p>
+        <h2 id="contact-title" data-i18n="contact.tripTitle">Traveling soon? List your trip</h2>
+        <p class="lead" data-i18n="contact.tripLead">Flying between Ethiopia and the diaspora? Tell us when and how much room you have. People who need something carried find your trip and ask you; you accept or decline each item.</p>
+        <p class="note" data-i18n="contact.sendNote">Need something carried? Start with the search at the top of the page.</p>
         <dl class="info-list">
           <dt data-i18n="info.routes">Routes</dt><dd data-i18n="info.routesVal">Ethiopia ⇄ the diaspora, both directions</dd>
           <dt data-i18n="info.response">Response</dt><dd data-i18n="info.responseVal">Within 1 business day</dd>
-          <dt data-i18n="info.email">Email</dt><dd>hello@jebenaexpress.example</dd>
+          <dt data-i18n="info.questions">Questions</dt><dd><a class="inline-link" href="mailto:hello@jebenaexpress.example">hello@jebenaexpress.example</a></dd>
         </dl>
       </div>
       <div class="form-card">
         <form id="contactForm" novalidate>
           <div class="hp" aria-hidden="true"><label for="c-website">Website</label><input id="c-website" name="website" tabindex="-1" autocomplete="off"></div>
-          <div id="tripPick" class="trip-pick" hidden>
-            <span class="tp-avatar" id="tripPickInitial" aria-hidden="true"></span>
-            <div class="tp-text"><span class="eyebrow" data-i18n="find.pickEyebrow">Sending with</span><b id="tripPickName"></b><span class="note" id="tripPickMeta"></span></div>
-            <button type="button" class="linkish" id="tripPickClear" data-i18n="find.pickClear">Choose someone else</button>
-          </div>
-          <fieldset class="role-seg">
-            <legend data-i18n="form.iam">I am a</legend>
-            <label for="c-role-s"><input type="radio" id="c-role-s" name="role" value="Sender" checked><span data-i18n="form.sending">I need something carried</span></label>
-            <label for="c-role-t"><input type="radio" id="c-role-t" name="role" value="Traveler"><span data-i18n="form.traveling">I'm traveling</span></label>
-          </fieldset>
           <fieldset class="role-seg">
             <legend data-i18n="form.dir">Direction</legend>
             <label for="c-dir-to"><input type="radio" id="c-dir-to" name="dir" value="to" checked><span id="dirToText">To Addis Ababa</span></label>
@@ -304,10 +299,9 @@
             </div>
           </div>
           <span id="cityHint" class="hint" data-i18n="form.cityHint">Pick the city in Ethiopia, then type the city in the diaspora where the trip starts or ends.</span>
-          <div id="destAlert" class="alert" role="status" hidden></div>
 
           <!-- Trip details (travelers) -->
-          <div id="tripFields" class="form-block" hidden>
+          <div id="tripFields" class="form-block">
             <h4 class="form-sub" data-i18n="form.tripSub">Your trip</h4>
             <div class="two">
               <label for="c-flight"><span data-i18n="form.flight">Flight date</span><input id="c-flight" name="flight" type="date"></label>
@@ -320,60 +314,16 @@
             </fieldset>
           </div>
 
-          <!-- Item details (people who need something carried) -->
-          <div id="itemFields" class="form-block">
-            <h4 class="form-sub" data-i18n="form.itemSub">The item</h4>
-            <div class="two">
-              <label for="c-type"><span data-i18n="form.type">What is it?</span>
-                <select id="c-type" name="itype">
-                  <option value="" data-i18n="form.typeChoose">Choose a type</option>
-                  <option value="clothes" data-i18n="type.clothes">Clothes</option>
-                  <option value="medicine" data-i18n="type.medicine">Medicine</option>
-                  <option value="electronics" data-i18n="type.electronics">Electronics</option>
-                  <option value="documents" data-i18n="type.documents">Documents</option>
-                  <option value="food" data-i18n="type.food">Food</option>
-                  <option value="other" data-i18n="type.other">Other</option>
-                </select>
-              </label>
-              <label for="c-weight"><span data-i18n="form.weight">Weight (kg)</span><input id="c-weight" name="weight" type="number" min="0.1" max="100" step="0.1" inputmode="decimal" placeholder="2"></label>
-            </div>
-            <div class="two">
-              <label for="c-ready"><span data-i18n="form.ready">Ready to hand over from</span><input id="c-ready" name="ready" type="date"></label>
-              <label for="c-needed"><span data-i18n="form.needed">Needed by (optional)</span><input id="c-needed" name="needed" type="date"></label>
-            </div>
-            <p class="hint" data-i18n="form.dateHint">Travelers need the item at least one day before their flight.</p>
-            <div class="field">
-              <label for="c-photo" data-i18n="form.photo">Photo of the item</label>
-              <div class="photo-pick">
-                <img id="photoPreview" alt="" hidden>
-                <input id="c-photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif">
-              </div>
-              <span class="hint" data-i18n="form.photoHint">A clear photo helps travelers decide. It's only shown to the traveler we propose your item to.</span>
-            </div>
-            <h4 class="form-sub" id="hoSub">Who hands it over?</h4>
-            <label class="check" for="c-ho-me"><input type="checkbox" id="c-ho-me"><span data-i18n="form.thatsMe">That's me</span></label>
-            <div class="two">
-              <label for="c-ho-name"><span data-i18n="form.name">Name</span><input id="c-ho-name" name="hoName" autocomplete="off"></label>
-              <label for="c-ho-phone"><span data-i18n="form.phone">Phone</span><input id="c-ho-phone" name="hoPhone" type="tel" autocomplete="off" placeholder="+251 911 234567"></label>
-            </div>
-            <h4 class="form-sub" id="puSub">Who picks it up?</h4>
-            <label class="check" for="c-pu-me"><input type="checkbox" id="c-pu-me"><span data-i18n="form.thatsMe">That's me</span></label>
-            <div class="two">
-              <label for="c-pu-name"><span data-i18n="form.name">Name</span><input id="c-pu-name" name="puName" autocomplete="off"></label>
-              <label for="c-pu-phone"><span data-i18n="form.phone">Phone</span><input id="c-pu-phone" name="puPhone" type="tel" autocomplete="off" placeholder="+49 151 2345678"></label>
-            </div>
-          </div>
-
           <h4 class="form-sub" data-i18n="form.youSub">Your contact details</h4>
           <div class="three">
             <label for="c-name"><span data-i18n="form.name">Name</span><input id="c-name" name="name" autocomplete="name" required placeholder="Selam Tesfaye"></label>
             <label for="c-email"><span data-i18n="form.email">Email</span><input id="c-email" name="email" type="email" autocomplete="email" required placeholder="selam@example.com"></label>
             <label for="c-phone"><span data-i18n="form.phone">Phone</span><input id="c-phone" name="phone" type="tel" autocomplete="tel" required placeholder="+1 301 555 0123"></label>
           </div>
-          <label for="c-msg"><span id="msgLabel">Describe the item</span><textarea id="c-msg" name="message" required></textarea></label>
+          <label for="c-msg"><span data-i18n="form.msgTrip">Anything else about your trip?</span><textarea id="c-msg" name="message" required></textarea></label>
           <label class="check" for="c-agree"><input type="checkbox" id="c-agree" name="agree"><span id="agreeText"></span></label>
           <p class="note" id="needAccount" hidden data-i18n="form.needAccount">You'll need a free account to send a request. What you type stays in the form while you log in.</p>
-          <div><button class="btn btn-primary" type="submit" id="contactSubmit" data-i18n="form.submit">Send request</button></div>
+          <div><button class="btn btn-primary" type="submit" id="contactSubmit" data-i18n="contact.submit">List my trip</button></div>
           <div id="contactStatus" class="status" role="status" hidden></div>
         </form>
       </div>
@@ -392,6 +342,11 @@
   <div id="findWrap" class="wrap" hidden>
     <section class="find-view" aria-labelledby="find-title">
       <a class="back-link" href="#home" data-i18n="find.back">← Back to the home page</a>
+      <ol class="progress" aria-label="Progress" data-i18n-aria="prog.label">
+        <li class="done"><span>1</span><b data-i18n="prog.search">Search</b></li>
+        <li class="now" aria-current="step"><span>2</span><b data-i18n="prog.choose">Choose a traveler</b></li>
+        <li class=""><span>3</span><b data-i18n="prog.details">Details</b></li>
+      </ol>
       <div class="stack" style="gap:6px">
         <span class="eyebrow" data-i18n="find.eyebrow">Find a traveler</span>
         <h2 id="find-title">Travelers for your item</h2>
@@ -401,11 +356,76 @@
         <label for="f2-city"><span id="f2-city-label">From</span><input id="f2-city" autocomplete="address-level2" placeholder="e.g. Frankfurt" data-i18n-ph="hero.cityPh"></label>
         <label for="f2-home"><span data-i18n="form.homeLabel">City in Ethiopia</span><select id="f2-home"></select></label>
         <label for="f2-type"><span data-i18n="form.type">What is it?</span><select id="f2-type"><option value="clothes" data-i18n="type.clothes">Clothes</option><option value="medicine" data-i18n="type.medicine">Medicine</option><option value="electronics" data-i18n="type.electronics">Electronics</option><option value="documents" data-i18n="type.documents">Documents</option><option value="food" data-i18n="type.food">Food</option><option value="other" data-i18n="type.other">Other</option></select></label>
+        <label for="f2-kg"><span data-i18n="form.weight">Weight (kg)</span><input id="f2-kg" type="number" min="0.1" max="100" step="0.1" inputmode="decimal" placeholder="2"></label>
         <label for="f2-by"><span data-i18n="hero.neededBy">Needed by</span><input id="f2-by" type="date"></label>
         <button class="btn btn-primary btn-sm" type="submit" data-i18n="find.update">Search again</button>
       </form>
       <div id="findResults" aria-live="polite"></div>
       <p class="note find-privacy" data-i18n="find.privacy">Only first names are shown here. Phone numbers and emails are shared once a traveler accepts your item.</p>
+    </section>
+  </div>
+
+  <!-- ============ SEND (details for the chosen traveler) ============ -->
+  <div id="sendWrap" class="wrap" hidden>
+    <section class="send-view" aria-labelledby="send-title">
+      <a class="back-link" id="sendBack" href="#find" data-i18n="send.back">← Back to results</a>
+      <ol class="progress" aria-label="Progress" data-i18n-aria="prog.label">
+        <li class="done"><span>1</span><b data-i18n="prog.search">Search</b></li>
+        <li class="done"><span>2</span><b data-i18n="prog.choose">Choose a traveler</b></li>
+        <li class="now" aria-current="step"><span>3</span><b data-i18n="prog.details">Details</b></li>
+      </ol>
+      <div class="stack" style="gap:6px">
+        <span class="eyebrow" data-i18n="send.eyebrow">Send your item</span>
+        <h2 id="send-title"></h2>
+      </div>
+      <p class="status err" id="sendGone" hidden></p>
+            <form class="send-card send-step" id="sendForm" novalidate>
+              <div class="hp" aria-hidden="true"><label for="s-website">Website</label><input id="s-website" name="website" tabindex="-1" autocomplete="off"></div>
+              <div id="tripPick" class="trip-pick">
+                <span class="tp-avatar" id="tripPickInitial" aria-hidden="true"></span>
+                <div class="tp-text"><span class="eyebrow" data-i18n="find.pickEyebrow">Sending with</span><b id="tripPickName"></b><span class="note" id="tripPickMeta"></span></div>
+                <button type="button" class="linkish" id="tripPickClear" data-i18n="find.pickClear">Choose someone else</button>
+              </div>
+              <p class="send-summary"><span id="sendSummary"></span> <button type="button" class="linkish" id="sendEdit" data-i18n="send.edit">Change search</button></p>
+              <h4 class="form-sub" data-i18n="send.detailsSub">Details for the traveler</h4>
+              <div class="two">
+                <label for="s-ready"><span data-i18n="form.ready">Ready to hand over from</span><input id="s-ready" name="ready" type="date"></label>
+                <div class="field">
+                  <label for="s-photo" data-i18n="form.photo">Photo of the item</label>
+                  <div class="photo-pick"><img id="photoPreview" alt="" hidden><input id="s-photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif"></div>
+                </div>
+              </div>
+              <span class="hint" data-i18n="send.readyHint">The traveler needs the item at least one day before the flight. The photo is only shown to them.</span>
+              <label for="s-msg"><span data-i18n="form.msgItem">Describe the item</span><textarea id="s-msg" name="message"></textarea></label>
+              <h4 class="form-sub" id="hoSub">Who hands it over?</h4>
+              <label class="check" for="s-ho-me"><input type="checkbox" id="s-ho-me"><span data-i18n="form.thatsMe">That's me</span></label>
+              <div class="two">
+                <label for="s-ho-name"><span data-i18n="form.name">Name</span><input id="s-ho-name" name="hoName" autocomplete="off"></label>
+                <label for="s-ho-phone"><span data-i18n="form.phone">Phone</span><input id="s-ho-phone" name="hoPhone" type="tel" autocomplete="off" placeholder="+49 151 2345678"></label>
+              </div>
+              <h4 class="form-sub" id="puSub">Who picks it up?</h4>
+              <label class="check" for="s-pu-me"><input type="checkbox" id="s-pu-me"><span data-i18n="form.thatsMe">That's me</span></label>
+              <div class="two">
+                <label for="s-pu-name"><span data-i18n="form.name">Name</span><input id="s-pu-name" name="puName" autocomplete="off"></label>
+                <label for="s-pu-phone"><span data-i18n="form.phone">Phone</span><input id="s-pu-phone" name="puPhone" type="tel" autocomplete="off" placeholder="+251 911 234567"></label>
+              </div>
+              <h4 class="form-sub" data-i18n="form.youSub">Your contact details</h4>
+              <div class="three">
+                <label for="s-name"><span data-i18n="form.name">Name</span><input id="s-name" name="name" autocomplete="name" placeholder="Selam Tesfaye"></label>
+                <label for="s-email"><span data-i18n="form.email">Email</span><input id="s-email" name="email" type="email" autocomplete="email" placeholder="selam@example.com"></label>
+                <label for="s-phone"><span data-i18n="form.phone">Phone</span><input id="s-phone" name="phone" type="tel" autocomplete="tel" placeholder="+1 301 555 0123"></label>
+              </div>
+              <label class="check" for="s-agree"><input type="checkbox" id="s-agree" name="agree"><span data-i18n-html="form.agree.sender"></span></label>
+              <p class="note" id="sNeedAccount" hidden data-i18n="form.needAccount">You'll need a free account to send a request. What you type stays in the form while you log in.</p>
+              <button class="btn btn-primary" type="submit" id="sendSubmit">Send request</button>
+              <div id="sendStatus" class="status" role="status" hidden></div>
+            </form>
+            <div class="send-card send-done" id="sendDone" hidden>
+              <span class="t-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+              <h3 id="sendDoneTitle"></h3>
+              <p class="note" id="sendDoneText"></p>
+              <div class="actions"><a class="btn btn-primary btn-sm" id="sendDoneLink" href="#account" data-i18n="ok.openStatus">Open its status page</a><a class="btn btn-ghost btn-sm" id="sendAnother" href="#find" data-i18n="send.findAnother">Find another traveler</a></div>
+            </div>
     </section>
   </div>
 
@@ -429,6 +449,12 @@
           <a class="btn btn-primary btn-sm" href="#contact" data-i18n="acct.new">New request</a>
         </div>
         <div id="myRequests" class="my-list"></div>
+      </article>
+      <article class="card" id="alertsCard">
+        <div class="card-head">
+          <div><h3 data-i18n="acct.alerts">Traveler alerts</h3><p class="sub" data-i18n="acct.alertsSub">We email you when a traveler who fits one of these searches lists a trip.</p></div>
+        </div>
+        <div id="myAlerts" class="my-list"></div>
       </article>
       <article class="card" id="carryCard">
         <div class="card-head">
@@ -520,6 +546,10 @@
   </div>
 </footer>
 
+<button type="button" class="to-top" id="toTop" aria-label="Back to top" data-i18n-aria="toTop">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
+</button>
+
 <!-- Account dialog: log in, sign up, reset and change password -->
 <div class="overlay" id="authOverlay" hidden>
   <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="auth-title">
@@ -556,7 +586,6 @@
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
 <script src="assets/i18n.js"></script>
-<script src="assets/rules-data.js"></script>
 <script src="assets/app.js"></script>
 </body>
 </html>

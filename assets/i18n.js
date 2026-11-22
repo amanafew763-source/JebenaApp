@@ -663,3 +663,71 @@ Object.assign(window.JEBENA_I18N.de, {
   'find.err.neededEarly':'Diese Person fliegt erst nach deinem „Benötigt bis“-Datum. Wähle ein späteres Datum oder jemand anderen.',
   'find.err.tooHeavy':'Das ist mehr, als diese Person Platz hat.'
 });
+
+// ---------- 22 Nov 2026 (3): two-step top card, trips-only Contact, alerts, back to top ----------
+Object.assign(window.JEBENA_I18N.en, {
+  'toTop':'Back to top',
+  'hero.errWeight':'Enter roughly how much it weighs, in kg.',
+  'send.edit':'Change search', 'send.step2':'Step 2 of 2: details for the traveler',
+  'send.readyHint':'The traveler needs the item at least one day before the flight. The photo is only shown to them.',
+  'send.byDate':'needed by {d}', 'send.submit':'Send request to {name}', 'send.another':'Send another item',
+  'send.doneTitle':'Request sent to {name}', 'send.doneFailTitle':'Request saved',
+  'send.doneText':'{name} will accept or decline, and we’ll email you either way. Contact details are shared once they accept.',
+  'contact.tripTitle':'Traveling soon? List your trip',
+  'contact.tripLead':'Flying between Ethiopia and the diaspora? Tell us when and how much room you have. People who need something carried find your trip and ask you; you accept or decline each item.',
+  'contact.sendNote':'Need something carried? Start with the search at the top of the page.',
+  'contact.submit':'List my trip', 'contact.tripSent':'Your trip is listed. People sending items you carry can now find it, and we’ll email you when someone asks.',
+  'info.questions':'Questions',
+  'find.noneSub':'Try other dates, a nearby city or a lighter weight, or let us email you as soon as a fitting traveler lists a trip.',
+  'find.alertBtn':'Email me when a traveler matches', 'find.alertBtnMore':'Email me when another traveler matches',
+  'find.moreNote':'Not the right dates or city?',
+  'find.alertDemo':'Demo page: on the live site this saves the search and emails you when a traveler matches.',
+  'find.alertLogin':'Log in or create a free account, and we’ll email you when a traveler matches this search.',
+  'find.alertSaved':'Done. We’ll email {email} when a traveler matches.', 'find.alertManage':'Manage alerts',
+  'find.alertLimit':'You already have 10 alerts. Delete one under My account first.', 'find.alertErr':'That didn’t save. Please try again.',
+  'acct.alerts':'Traveler alerts', 'acct.alertsSub':'We email you when a traveler who fits one of these searches lists a trip.',
+  'acct.alertsEmpty':'No alerts yet. When a search finds nobody, choose “Email me when a traveler matches”.',
+  'acct.alertSearch':'Search now', 'acct.alertDelete':'Delete', 'acct.alertDeleteConfirm':'Click again to delete'
+});
+Object.assign(window.JEBENA_I18N.de, {
+  'toTop':'Nach oben',
+  'hero.errWeight':'Gib ungefähr an, wie viel es wiegt, in kg.',
+  'send.edit':'Suche ändern', 'send.step2':'Schritt 2 von 2: Angaben für die reisende Person',
+  'send.readyHint':'Die reisende Person braucht den Artikel mindestens einen Tag vor dem Flug. Das Foto sieht nur sie.',
+  'send.byDate':'benötigt bis {d}', 'send.submit':'Anfrage an {name} senden', 'send.another':'Noch einen Artikel schicken',
+  'send.doneTitle':'Anfrage an {name} gesendet', 'send.doneFailTitle':'Anfrage gespeichert',
+  'send.doneText':'{name} nimmt an oder lehnt ab, und wir schicken dir in beiden Fällen eine E-Mail. Kontaktdaten werden nach der Zusage geteilt.',
+  'contact.tripTitle':'Bald unterwegs? Trag deine Reise ein',
+  'contact.tripLead':'Du fliegst zwischen Äthiopien und der Diaspora? Sag uns, wann und wie viel Platz du hast. Wer etwas transportieren lassen möchte, findet deine Reise und fragt dich an; du nimmst jeden Artikel an oder lehnst ab.',
+  'contact.sendNote':'Du möchtest etwas transportieren lassen? Starte mit der Suche oben auf der Seite.',
+  'contact.submit':'Reise eintragen', 'contact.tripSent':'Deine Reise ist eingetragen. Wer Artikel schickt, die du mitnimmst, findet sie jetzt, und wir schicken dir eine E-Mail, sobald jemand anfragt.',
+  'info.questions':'Fragen',
+  'find.noneSub':'Versuch andere Daten, eine Stadt in der Nähe oder ein geringeres Gewicht, oder lass dich per E-Mail benachrichtigen, sobald eine passende Reise eingetragen wird.',
+  'find.alertBtn':'Per E-Mail benachrichtigen, wenn jemand passt', 'find.alertBtnMore':'Benachrichtigen, wenn noch jemand passt',
+  'find.moreNote':'Nicht die richtigen Daten oder die richtige Stadt?',
+  'find.alertDemo':'Demo-Seite: Auf der echten Seite wird die Suche gespeichert und du bekommst eine E-Mail, sobald jemand passt.',
+  'find.alertLogin':'Melde dich an oder erstelle ein kostenloses Konto, dann schicken wir dir eine E-Mail, sobald jemand zu dieser Suche passt.',
+  'find.alertSaved':'Erledigt. Wir schreiben an {email}, sobald jemand passt.', 'find.alertManage':'Benachrichtigungen verwalten',
+  'find.alertLimit':'Du hast schon 10 Benachrichtigungen. Lösche zuerst eine unter „Mein Konto“.', 'find.alertErr':'Das hat nicht geklappt. Bitte versuch es noch einmal.',
+  'acct.alerts':'Benachrichtigungen', 'acct.alertsSub':'Wir schicken dir eine E-Mail, wenn eine passende reisende Person eine Reise einträgt.',
+  'acct.alertsEmpty':'Noch keine. Wenn eine Suche niemanden findet, wähle „Per E-Mail benachrichtigen, wenn jemand passt“.',
+  'acct.alertSearch':'Jetzt suchen', 'acct.alertDelete':'Löschen', 'acct.alertDeleteConfirm':'Zum Löschen noch einmal klicken'
+});
+Object.assign(window.JEBENA_I18N.en, { 'form.ph.sender':'e.g. A warm winter jacket, size M, folded in an open bag.' });
+Object.assign(window.JEBENA_I18N.de, { 'form.ph.sender':'z. B. Eine warme Winterjacke, Größe M, gefaltet in einer offenen Tasche.' });
+
+// ---------- 22 Nov 2026 (4): Send page and progress ----------
+Object.assign(window.JEBENA_I18N.en, {
+  'prog.label':'Progress', 'prog.search':'Search', 'prog.choose':'Choose a traveler', 'prog.details':'Details',
+  'send.back':'← Back to results', 'send.eyebrow':'Send your item', 'send.title':'Send your {type} with {name}',
+  'send.detailsSub':'Details for the traveler', 'send.findAnother':'Find another traveler',
+  'send.goneTitle':'This trip isn’t available any more',
+  'send.gone':'It may have filled up, or the flight date has passed. Have a look at the other travelers.'
+});
+Object.assign(window.JEBENA_I18N.de, {
+  'prog.label':'Fortschritt', 'prog.search':'Suchen', 'prog.choose':'Reisende wählen', 'prog.details':'Angaben',
+  'send.back':'← Zurück zu den Ergebnissen', 'send.eyebrow':'Artikel schicken', 'send.title':'Deine {type} mit {name} schicken',
+  'send.detailsSub':'Angaben für die reisende Person', 'send.findAnother':'Andere reisende Person finden',
+  'send.goneTitle':'Diese Reise ist nicht mehr verfügbar',
+  'send.gone':'Sie ist vielleicht voll, oder das Flugdatum ist vorbei. Sieh dir die anderen Reisenden an.'
+});

@@ -76,18 +76,20 @@ Matching: a different city (a Jimma item on an Addis trip) is shown with a yello
 
 - `2026-11-22-cities.sql`: adds the Ethiopian city (existing requests become Addis Ababa).
 - `2026-11-22-find-traveler.sql`: adds "What will you carry?", the traveler search and picking a traveler. Trips posted before it don't appear in the search until the traveler edits them and ticks what they'll carry.
+- `2026-11-22-alerts.sql`: "Email me when a traveler matches" (run after the find-traveler update).
 
 The rules (customer rules, prohibited items, customs, what travelers can't carry) live on their own page, `rules.html`, which the site opens in its own window (or a new tab if the browser blocks windows, and on phones). The customs rules themselves are in `assets/rules-data.js`.
 
 ## Find a traveler
 
-On the home page, someone who needs something carried picks the route, **what they're sending** and a **"Needed by"** date, then clicks **Find a traveler**. The results page (`#find?...`) lists trips that:
+Everyone who needs something carried starts in the top card on the home page:
 
-- go the same direction to the same city in Ethiopia (other Ethiopian cities are listed below, flagged),
-- fly at least a day from now and no later than the "Needed by" date,
-- list that item type under **"What will you carry?"**, and still have free space.
+1. **Step 1, search:** the route, **what they're sending**, the **weight** and a **"Needed by"** date, then **Find a traveler**. The results page (`#find?...`) lists trips that go the same direction to the same city in Ethiopia (other Ethiopian cities are listed below, flagged), fly at least a day from now and no later than the "Needed by" date, list that item type under **"What will you carry?"**, and have room for the weight.
+2. **Step 2, the Send page** (`#send?...`): after they choose a traveler, a separate page asks for the rest (ready date, description, photo, who hands it over and picks it up, contact details). Sending it proposes the item to that trip (`request_trip`); the traveler accepts or declines.
 
-Anyone can search. Results show only a first name, rating, flight date, route and free space. Choosing a traveler fills in the request form; when it's sent, the item is proposed to that trip (`request_trip`) and the traveler accepts or declines, as with admin matches. Travelers choose what they'll carry on each trip; the choice is remembered on their profile (**My account → What I'm willing to carry**).
+Anyone can search. Results show only a first name, rating, flight date, route and free space. If nobody fits, logged-in people can choose **"Email me when a traveler matches"**; the email function writes to them when a fitting trip is posted (at most once a day per alert). They manage alerts under **My account**.
+
+The **Contact** section is for travelers only (**List your trip**), with the email address for questions. Travelers choose what they'll carry on each trip; the choice is remembered on their profile (**My account → What I'm willing to carry**).
 
 ## Setup
 

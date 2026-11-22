@@ -65,7 +65,7 @@
   let user = null;            // Supabase auth user
   let hasPassword = false;    // senders may sign in with an email code only
   let profile = null;         // { full_name, is_admin }
-  let view = 'home';          // home | find | account | admin | status
+  let view = 'home';          // home | find | send | account | admin | status
   let statusId = null;        // request shown on the status page
   let pendingStatus = null;   // status page to open after logging in
 
@@ -91,7 +91,9 @@
     document.body.classList.toggle('account-mode', v === 'account');
     document.body.classList.toggle('status-mode', v === 'status');
     document.body.classList.toggle('find-mode', v === 'find');
+    document.body.classList.toggle('send-mode', v === 'send');
     $('findWrap').hidden = v !== 'find';
+    $('sendWrap').hidden = v !== 'send';
     $('adminWrap').hidden = v !== 'admin';
     $('accountWrap').hidden = v !== 'account';
     $('statusWrap').hidden = v !== 'status';
@@ -113,13 +115,15 @@
       if(user) setView('account'); else if(sb) openAuth('code');
     } else if(h.startsWith('#find')){
       setView('find'); renderFind(readFindHash());
-    } else if(view === 'status' || view === 'account' || view === 'find'){
+    } else if(h.startsWith('#send')){
+      setView('send'); renderSendPage(readFindHash());
+    } else if(view === 'status' || view === 'account' || view === 'find' || view === 'send'){
       setView('home');
     }
   }
   window.addEventListener('hashchange', route);
   adminLink.addEventListener('click', e=>{ e.preventDefault(); setMenu(false); setView('admin'); });
-  document.querySelectorAll('a[href^="#"]:not(#adminLink):not([href="#account"]):not([href^="#find"])').forEach(a=>a.addEventListener('click', ()=>{ if(view !== 'home') setView('home'); }));
+  document.querySelectorAll('a[href^="#"]:not(#adminLink):not([href="#account"]):not([href^="#find"]):not([href^="#send"])').forEach(a=>a.addEventListener('click', ()=>{ if(view !== 'home') setView('home'); }));
 
   // ---------- account dialog ----------
   // Senders: email code (no password). Travelers: password account.
@@ -162,7 +166,7 @@
     setTimeout(()=>{ const first = [...authForm.querySelectorAll('label:not([hidden]) input')].find(i => !i.value) || [...authForm.querySelectorAll('label:not([hidden]) input')][0]; if(first) first.focus(); }, 30);
   }
   function closeAuth(){ authOverlay.hidden = true; loginBtn.focus(); }
-  function cancelAuth(){ pendingSend = false; closeAuth(); }
+  function cancelAuth(){ pendingSend = null; pendingAlert = null; closeAuth(); }
   function authMsg(kind, key, vars){ authStatus.className = 'status ' + kind; authStatus.textContent = t(key, vars); authStatus.hidden = false; }
   $('closeAuth').addEventListener('click', cancelAuth);
   authOverlay.addEventListener('click', e=>{ if(e.target === authOverlay) cancelAuth(); });
@@ -233,7 +237,7 @@
         hasPassword = true;
         authMsg('ok', 'auth.pwSaved');
         if(view === 'account') renderAccount();
-        setTimeout(()=>{ closeAuth(); if(pendingSend){ pendingSend = false; cForm.requestSubmit(); } }, 900);
+        setTimeout(()=>{ closeAuth(); if(pendingSend){ const f = pendingSend; pendingSend = null; f.requestSubmit(); } }, 900);
       }
     } catch(err){
       authMsg('err', mapAuthError(err));
@@ -288,10 +292,11 @@
     prefillContact();
     if(event === 'PASSWORD_RECOVERY') openAuth('newpass');
     if(event === 'SIGNED_IN' && pendingSend && user){
-      pendingSend = false;
-      $('contact').scrollIntoView({behavior: reduce?'auto':'smooth'});
-      cForm.requestSubmit();   // finish sending the request they started
+      const f = pendingSend; pendingSend = null;
+      f.scrollIntoView({behavior: reduce?'auto':'smooth', block: 'center'});
+      f.requestSubmit();   // finish sending what they started
     }
+    if(event === 'SIGNED_IN' && pendingAlert && user){ const a = pendingAlert; pendingAlert = null; saveAlert(a.q, a.st, a.btn); }
     if(event === 'SIGNED_IN' && pendingStatus && user){ const id = pendingStatus; pendingStatus = null; statusId = id; setView('status'); renderStatus(id); }
     if(!routedOnce){ routedOnce = true; route(); }
     if(view === 'account') user ? renderAccount() : setView('home');
@@ -357,29 +362,6 @@
     sel.value = HOME_BY_ID.has(cur) ? cur : DEFAULT_HOME;
   }
 
-  // Customs rules live in assets/rules-data.js (shared with rules.html).
-  const RULES = window.JEBENA_RULES;
-  const CARE_ICON = '<span class="ico care" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M8 4v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="8" cy="12" r="1.2" fill="currentColor"/></svg></span>';
-  const dirLabel = (dir, c) => t('dir.' + dir, {c: countryName(c)});
-  function rulesList(c, dir){
-    const R = RULES[c][dir], frag = document.createDocumentFragment(), ul = document.createElement('ul');
-    (R[lang] || R.en).forEach(s=>{ const li = document.createElement('li'); li.textContent = s; ul.appendChild(li); });
-    const src = document.createElement('p'); src.className = 'src'; src.append(t('rules.source'));
-    R.sources.forEach(([label, url], i)=>{
-      if(i) src.append(' · ');
-      const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = label; src.appendChild(a);
-    });
-    frag.append(ul, src); return frag;
-  }
-  const destAlert = $('destAlert');
-  function updateDestAlert(c, dir){
-    destAlert.innerHTML = ''; destAlert.hidden = false; destAlert.className = 'alert';
-    const h = document.createElement('strong'); h.innerHTML = CARE_ICON; h.append(t('rules.forDir', {d: dirLabel(dir, c)}));
-    const more = document.createElement('a'); more.href = 'rules.html?dir=' + dir + '#items'; more.target = '_blank'; more.rel = 'noopener'; more.className = 'inline-link'; more.textContent = t('rules.seeAll');
-    const p = document.createElement('p'); p.className = 'src'; p.appendChild(more);
-    destAlert.append(h, rulesList(c, dir), p);
-  }
-
   // ---------- rules page: opens in its own window ----------
   // Links to rules.html open a separate browser window (re-used on later clicks).
   // If the browser blocks it, or on phones, the link just opens a new tab.
@@ -392,64 +374,126 @@
     if(win){ e.preventDefault(); try{ win.focus(); }catch(err){} }
   });
 
-  // ---------- request form ----------
-  // "I need something carried" (an item, either direction) or "I'm traveling" (a trip).
-  const cForm = $('contactForm'), cStatus = $('contactStatus');
+  // ---------- forms: shared helpers ----------
   const PHONE_RE = /^\+?[0-9 ()./-]{6,25}$/;
-  let formStartedAt = 0, formFlag = false, pendingSend = false, photoBlob = null, meTouched = false;
   const todayISO = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
   const addDays = (iso, n) => { const d = new Date(iso + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
-  const isTraveler = () => cForm.role.value === 'Traveler';
-
-  function placeNames(){
-    const city = cForm.city.value.trim() || t('form.yourCity');
-    const home = homeName(cForm.home.value);
-    return cForm.dir.value === 'from' ? { ho: home, pu: city } : { ho: city, pu: home };
+  let pendingSend = null;        // the form to send once the person has logged in
+  let formFlag = false;
+  function sayIn(box, kind, key, vars, link){
+    box.hidden = false; box.className = 'status ' + kind; box.textContent = t(key, vars);
+    if(link){ const a = document.createElement('a'); a.href = link[1]; a.className = 'inline-link'; a.textContent = link[0]; box.append(' ', a); }
   }
+  function trackStart(form){
+    form.addEventListener('focusin', () => {
+      if(!form._startedAt) form._startedAt = Date.now();
+      if(!formFlag){ formFlag = true; pushVisit(); }
+    });
+  }
+  const saveErrKey = err => { const m = String((err && err.message) || ''); return m.includes('rate_limit') ? 'err.rate' : m === 'photo_upload' ? 'err.photoUpload' : m.includes('date_in_past') ? 'err.past' : 'err.save'; };
+
+  // ---------- "List my trip" (Contact section, travelers) ----------
+  const cForm = $('contactForm'), cStatus = $('contactStatus');
+  let carryTouched = false;
+  const say = (...a) => sayIn(cStatus, ...a);
   function setFormDir(){
     const dir = cForm.dir.value, home = cForm.home.value;
     $('c-city-label').textContent = t(dir === 'from' ? 'form.cityLabel.from' : 'form.cityLabel.to');
     $('dirToText').textContent = t('form.dirTo', {home: homeName(home)});
     $('dirFromText').textContent = t('form.dirFrom', {home: homeName(home)});
     $('c-city').placeholder = t('form.cityPh');
-    const p = placeNames();
-    $('hoSub').textContent = t('form.hoSub', {place: p.ho});
-    $('puSub').textContent = t('form.puSub', {place: p.pu});
-    // Sensible default: you usually hand the item over yourself when sending to Addis,
-    // and pick it up yourself when it comes from Addis.
-    if(!meTouched){ setMe('ho', dir === 'to'); setMe('pu', dir === 'from'); }
-    updateDestAlert(countryOf(home), dir);
   }
   function setRoleUI(){
-    const traveler = isTraveler();
-    $('tripFields').hidden = !traveler;
-    $('itemFields').hidden = traveler;
-    $('msgLabel').textContent = t(traveler ? 'form.msgTrip' : 'form.msgItem');
-    setAgreeText();
+    $('agreeText').innerHTML = t('form.agree.traveler');
+    $('c-msg').placeholder = t('form.ph.traveler');
   }
-  function setAgreeText(){
-    const traveler = isTraveler();
-    $('agreeText').innerHTML = t(traveler ? 'form.agree.traveler' : 'form.agree.sender');
-    $('c-msg').placeholder = t(traveler ? 'form.ph.traveler' : 'form.ph.sender');
+  cForm.home.addEventListener('change', setFormDir);
+  cForm.querySelectorAll('input[name=dir]').forEach(r => r.addEventListener('change', setFormDir));
+  $('carryGrid').addEventListener('change', () => { carryTouched = true; });
+  trackStart(cForm);
+  function setDateLimits(){
+    const today = todayISO();
+    $('c-flight').min = today; $('s-ready').min = today;
+  }
+  function validateTrip(){
+    const v = k => cForm[k].value.trim();
+    if(!v('name') || !v('email') || !v('phone') || !v('city') || !v('message')) return 'err.fill';
+    if(!EMAIL_RE.test(v('email'))) return 'err.email';
+    if(!PHONE_RE.test(v('phone'))) return 'err.phone';
+    if(!v('flight') || !v('space')) return 'err.fillTrip';
+    if(v('flight') < todayISO()) return 'err.past';
+    const kg = Number(v('space')); if(!(kg > 0 && kg <= 100)) return 'err.space';
+    if(!checkedIn($('carryGrid')).length) return 'err.carry';
+    if(!cForm.agree.checked) return 'err.agree';
+    return null;
+  }
+  function resetForm(){
+    cForm.reset(); cForm._startedAt = 0; carryTouched = false;
+    fillHomeSelect(cForm.home); setRoleUI(); setFormDir(); setDateLimits(); prefillContact();
+  }
+  cForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const problem = validateTrip();
+    if(problem){ say('err', problem); if(problem === 'err.agree') cForm.agree.focus(); return; }
+    if(cForm.website.value){ resetForm(); return say('ok', 'ok.sent'); }   // honeypot: pretend success
+    if(Date.now() - (cForm._startedAt || 0) < 3000) return say('err', 'err.tooFast');
+    if(!sb) return say('err', 'backend.off');
+    if(!user){ pendingSend = cForm; openAuth(CODES ? 'login' : 'signup', 'auth.travelerLogin', {email: cForm.email.value.trim(), name: cForm.name.value.trim()}); return; }
+    if(!hasPassword){ pendingSend = cForm; openAuth('change', 'auth.travelerNeedsPw'); return; }
+    const v = k => cForm[k].value.trim();
+    const row = {
+      role: 'traveler', direction: cForm.dir.value === 'from' ? 'from_addis' : 'to_addis', home_city: cForm.home.value,
+      city: v('city'), details: v('message'), contact_name: v('name'), contact_email: v('email'), contact_phone: v('phone'),
+      agreed_prohibited: true, lang, flight_date: v('flight'), space_kg: Number(v('space')), carry_types: checkedIn($('carryGrid'))
+    };
+    const btn = $('contactSubmit'); btn.disabled = true; say('ok', 'form.sendingNow');
+    try{
+      const { data, error } = await sb.from('requests').insert(row).select('id').single();
+      if(error) throw error;
+      // Remember what they carry as the default for their next trip.
+      profile = Object.assign(profile || {}, { carry_types: row.carry_types });
+      sb.from('profiles').update({ carry_types: row.carry_types }).eq('id', user.id).then(()=>{}, ()=>{});
+      resetForm();
+      say('ok', 'contact.tripSent', null, [t('ok.openStatus'), '#r' + data.id]);
+    } catch(err){ say('err', saveErrKey(err)); }
+    finally { btn.disabled = false; }
+  });
+
+  // ---------- step 2 in the top card: item details for the chosen traveler ----------
+  const sForm = $('sendForm'), sStatus = $('sendStatus');
+  let photoBlob = null, meTouched = false, pickedTrip = null, sendQuery = null;
+  const sSay = (...a) => sayIn(sStatus, ...a);
+  function placeNames(){
+    const q = sendQuery || { dir: 'to', city: '', home: DEFAULT_HOME };
+    const city = q.city || t('form.yourCity'), home = homeName(q.home);
+    return q.dir === 'from' ? { ho: home, pu: city } : { ho: city, pu: home };
+  }
+  function setSendTexts(){
+    if(!sendQuery) return;
+    const q = sendQuery, p = placeNames();
+    $('hoSub').textContent = t('form.hoSub', {place: p.ho});
+    $('puSub').textContent = t('form.puSub', {place: p.pu});
+    $('sendSummary').textContent = [typeName(q.type), q.kg ? fmtKg(q.kg) : '', routeLabel(q.dir, q.city, q.home), q.by ? t('send.byDate', {d: fmtDay(q.by)}) : ''].filter(Boolean).join(' · ');
+    $('s-msg').placeholder = t('form.ph.sender');
+    const r = pickedTrip;
+    if(r){
+      $('tripPickInitial').textContent = (r.first_name || '?').charAt(0).toUpperCase();
+      $('tripPickName').textContent = r.first_name;
+      $('tripPickMeta').textContent = t('find.pickMeta', {d: fmtDay(r.flight_date), route: routeLabel(q.dir, r.city, r.home_city), kg: fmtKg(r.space_left)});
+      $('sendSubmit').textContent = t('send.submit', {name: r.first_name});
+    }
   }
   // "That's me": copy your own name and phone into the hand-over or pickup person.
   function setMe(which, on){
-    const box = $('c-' + which + '-me'); box.checked = on;
-    const n = $('c-' + which + '-name'), ph = $('c-' + which + '-phone');
+    const box = $('s-' + which + '-me'); box.checked = on;
+    const n = $('s-' + which + '-name'), ph = $('s-' + which + '-phone');
     n.disabled = ph.disabled = on;
-    if(on){ n.value = cForm.name.value; ph.value = cForm.phone.value; }
-    else if(n.value === cForm.name.value && ph.value === cForm.phone.value){ n.value = ''; ph.value = ''; }
+    if(on){ n.value = sForm.name.value; ph.value = sForm.phone.value; }
+    else if(n.value === sForm.name.value && ph.value === sForm.phone.value){ n.value = ''; ph.value = ''; }
   }
-  ['ho', 'pu'].forEach(w => $('c-' + w + '-me').addEventListener('change', e => { meTouched = true; setMe(w, e.target.checked); }));
-  ['name', 'phone'].forEach(f => cForm[f].addEventListener('input', () => ['ho', 'pu'].forEach(w => { if($('c-' + w + '-me').checked) $('c-' + w + '-' + f).value = cForm[f].value; })));
-  cForm.home.addEventListener('change', setFormDir);
-  cForm.city.addEventListener('input', () => { const p = placeNames(); $('hoSub').textContent = t('form.hoSub', {place: p.ho}); $('puSub').textContent = t('form.puSub', {place: p.pu}); });
-
-  function setDateLimits(){
-    const today = todayISO();
-    $('c-ready').min = today; $('c-needed').min = $('c-ready').value || today; $('c-flight').min = today;
-  }
-  $('c-ready').addEventListener('change', setDateLimits);
+  ['ho', 'pu'].forEach(w => $('s-' + w + '-me').addEventListener('change', e => { meTouched = true; setMe(w, e.target.checked); }));
+  ['name', 'phone'].forEach(f => sForm[f].addEventListener('input', () => ['ho', 'pu'].forEach(w => { if($('s-' + w + '-me').checked) $('s-' + w + '-' + f).value = sForm[f].value; })));
+  trackStart(sForm);
 
   // Photos are shrunk in the browser (max 1600 px, JPEG) before upload.
   async function compressPhoto(file){
@@ -462,14 +506,14 @@
       return await new Promise(res => c.toBlob(res, 'image/jpeg', 0.85));
     } finally { URL.revokeObjectURL(url); }
   }
-  $('c-photo').addEventListener('change', async e => {
+  $('s-photo').addEventListener('change', async e => {
     const file = e.target.files[0], prev = $('photoPreview');
     photoBlob = null; prev.hidden = true;
     if(!file) return;
     try{
       photoBlob = await compressPhoto(file);
       prev.src = URL.createObjectURL(photoBlob); prev.alt = t('form.photoAlt'); prev.hidden = false;
-    } catch(err){ e.target.value = ''; say('err', 'form.photoErr'); }
+    } catch(err){ e.target.value = ''; sSay('err', 'form.photoErr'); }
   });
   async function uploadPhoto(blob){
     const path = `${user.id}/${(crypto.randomUUID && crypto.randomUUID()) || Date.now().toString(36)}.jpg`;
@@ -477,126 +521,106 @@
     if(error) throw Object.assign(new Error('photo_upload'), { cause: error });
     return path;
   }
+  function validateSend(){
+    const v = k => sForm[k].value.trim(), q = sendQuery, r = pickedTrip;
+    if(!q || !r) return 'err.save';
+    if(!v('ready') || !v('message') || !v('hoName') || !v('hoPhone') || !v('puName') || !v('puPhone')) return 'err.fillItem';
+    if(!v('name') || !v('email') || !v('phone')) return 'err.fill';
+    if(!EMAIL_RE.test(v('email'))) return 'err.email';
+    if(!PHONE_RE.test(v('phone')) || !PHONE_RE.test(v('hoPhone')) || !PHONE_RE.test(v('puPhone'))) return 'err.phone';
+    if(v('ready') < todayISO()) return 'err.past';
+    if(v('ready') > addDays(r.flight_date, -1)) return 'find.err.readyLate';
+    if(!photoBlob) return 'err.photo';
+    if(!sForm.agree.checked) return 'err.agree';
+    return null;
+  }
+  // Fill the Send page for the traveler they chose.
+  function openSend(r, q){
+    if(!pickedTrip || pickedTrip.trip_id !== r.trip_id) sStatus.hidden = true;
+    sendQuery = q; pickedTrip = r;
+    $('sendGone').hidden = true; $('sendDone').hidden = true; sForm.hidden = false;
+    $('sendBack').href = $('sendAnother').href = findHash(searchOf(q));
+    $('s-ready').min = todayISO(); $('s-ready').max = addDays(r.flight_date, -1);
+    if($('s-ready').value > $('s-ready').max) $('s-ready').value = '';
+    // Usually you hand the item over yourself when sending to Ethiopia, and pick it up yourself when it comes from there.
+    if(!meTouched){ setMe('ho', q.dir === 'to'); setMe('pu', q.dir === 'from'); }
+    setSendTexts(); prefillContact();
+  }
+  function resetSend(){
+    sForm.reset(); sForm._startedAt = 0; photoBlob = null; meTouched = false; $('photoPreview').hidden = true;
+    ['ho', 'pu'].forEach(w => { $('s-' + w + '-name').disabled = $('s-' + w + '-phone').disabled = false; });
+  }
+  // Put step 1 back the way it was searched.
+  function fillHero(q){
+    setHeroRole('Sender');
+    $('h-home').value = q.home; setHeroDir(q.dir);
+    $('h-city').value = q.city || ''; $('h-type').value = q.type; $('h-weight').value = q.kg || ''; $('h-date').value = q.by || '';
+  }
+  // "Change search": back to the home page search, filled in.
+  $('sendEdit').addEventListener('click', () => {
+    const q = sendQuery;
+    history.pushState(null, '', location.pathname + location.search); setView('home');
+    if(q) fillHero(q);
+    window.scrollTo({top: 0, behavior: 'auto'}); $('h-type').focus({preventScroll: true});
+  });
+  $('tripPickClear').addEventListener('click', () => { if(sendQuery) location.hash = findHash(searchOf(sendQuery)); });
+  $('sendAnother').addEventListener('click', () => { resetSend(); pickedTrip = null; });
+  function showSent(trip, id, failed){
+    sForm.hidden = true; $('sendDone').hidden = false; $('send-title').textContent = t(failed ? 'send.doneFailTitle' : 'send.doneTitle', {name: trip.first_name});
+    $('sendDoneTitle').textContent = t(failed ? 'send.doneFailTitle' : 'send.doneTitle', {name: trip.first_name});
+    $('sendDoneText').textContent = t(failed ? 'find.sentFail' : 'send.doneText', {name: trip.first_name});
+    $('sendDoneLink').href = '#r' + id;
+    window.scrollTo({top: 0, behavior: reduce ? 'auto' : 'smooth'});
+  }
+  sForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const problem = validateSend();
+    if(problem){ sSay('err', problem); if(problem === 'err.agree') sForm.agree.focus(); return; }
+    if(sForm.website.value){ resetSend(); return; }   // honeypot
+    if(Date.now() - (sForm._startedAt || 0) < 3000) return sSay('err', 'err.tooFast');
+    if(!sb) return sSay('err', 'backend.off');
+    if(!user){ pendingSend = sForm; openAuth(CODES ? 'code' : 'signup', 'auth.needLogin', {email: sForm.email.value.trim(), name: sForm.name.value.trim()}); return; }
+    const v = k => sForm[k].value.trim(), q = sendQuery, trip = pickedTrip;
+    const row = {
+      role: 'sender', direction: q.dir === 'from' ? 'from_addis' : 'to_addis', home_city: q.home,
+      city: q.city, details: v('message'), contact_name: v('name'), contact_email: v('email'), contact_phone: v('phone'),
+      agreed_prohibited: true, lang, item_type: q.type, weight_kg: Number(q.kg), ready_date: v('ready'), needed_by: q.by || null,
+      handover_name: v('hoName'), handover_phone: v('hoPhone'), pickup_name: v('puName'), pickup_phone: v('puPhone')
+    };
+    const btn = $('sendSubmit'); btn.disabled = true; sSay('ok', 'form.sendingNow');
+    try{
+      row.photo_path = await uploadPhoto(photoBlob);
+      const { data, error } = await sb.from('requests').insert(row).select('id').single();
+      if(error) throw error;
+      // Propose the item to the traveler they chose; the traveler accepts or declines.
+      const { error: pickErr } = await sb.rpc('request_trip', { p_item: data.id, p_trip: trip.trip_id });
+      resetSend();
+      showSent(trip, data.id, !!pickErr);
+    } catch(err){ sSay('err', saveErrKey(err)); }
+    finally { btn.disabled = false; }
+  });
 
   function prefillContact(){
     if(user){
-      if(!cForm.name.value && profile && profile.full_name) cForm.name.value = profile.full_name;
-      if(!cForm.email.value && user.email) cForm.email.value = user.email;
-      ['ho', 'pu'].forEach(w => { if($('c-' + w + '-me').checked) setMe(w, true); });
+      [cForm, sForm].forEach(f => {
+        if(!f.name.value && profile && profile.full_name) f.name.value = profile.full_name;
+        if(!f.email.value && user.email) f.email.value = user.email;
+      });
+      ['ho', 'pu'].forEach(w => { if($('s-' + w + '-me').checked) setMe(w, true); });
     }
-    $('needAccount').hidden = !sb || !!user;
+    $('needAccount').hidden = $('sNeedAccount').hidden = !sb || !!user;
     if(user && profile && profile.carry_types && !carryTouched) carryBoxes($('carryGrid'), 'carry', profile.carry_types);
   }
-  cForm.querySelectorAll('input[name=role]').forEach(r => r.addEventListener('change', setRoleUI));
-  cForm.querySelectorAll('input[name=dir]').forEach(r => r.addEventListener('change', setFormDir));
-  cForm.addEventListener('focusin', () => {
-    if(!formStartedAt) formStartedAt = Date.now();
-    if(!formFlag){ formFlag = true; pushVisit(); }
-  });
-  function say(kind, key, vars, link){
-    cStatus.hidden = false; cStatus.className = 'status ' + kind; cStatus.textContent = t(key, vars);
-    if(link){ const a = document.createElement('a'); a.href = link[1]; a.className = 'inline-link'; a.textContent = link[0]; cStatus.append(' ', a); }
-  }
 
-  // Checks the form; returns an error key or null.
-  function validate(){
-    const v = k => cForm[k].value.trim();
-    if(!v('name') || !v('email') || !v('phone') || !v('city') || !v('message')) return 'err.fill';
-    if(!EMAIL_RE.test(v('email'))) return 'err.email';
-    if(!PHONE_RE.test(v('phone'))) return 'err.phone';
-    const today = todayISO();
-    if(isTraveler()){
-      if(!v('flight') || !v('space')) return 'err.fillTrip';
-      if(v('flight') < today) return 'err.past';
-      const kg = Number(v('space')); if(!(kg > 0 && kg <= 100)) return 'err.space';
-      if(!checkedIn($('carryGrid')).length) return 'err.carry';
-    } else {
-      if(!v('itype') || !v('weight') || !v('ready') || !$('c-ho-name').value.trim() || !$('c-ho-phone').value.trim() || !$('c-pu-name').value.trim() || !$('c-pu-phone').value.trim()) return 'err.fillItem';
-      const kg = Number(v('weight')); if(!(kg > 0 && kg <= 100)) return 'err.weight';
-      if(v('ready') < today || (v('needed') && v('needed') < today)) return 'err.past';
-      if(v('needed') && v('needed') < v('ready')) return 'err.neededBeforeReady';
-      if(!PHONE_RE.test($('c-ho-phone').value.trim()) || !PHONE_RE.test($('c-pu-phone').value.trim())) return 'err.phone';
-      if(!photoBlob) return 'err.photo';
-      // Sending with a traveler picked from the search: dates must suit their flight.
-      if(pickedTrip){
-        if(v('ready') > addDays(pickedTrip.flight_date, -1)) return 'find.err.readyLate';
-        if(v('needed') && v('needed') < pickedTrip.flight_date) return 'find.err.neededEarly';
-        if(Number(v('weight')) > Number(pickedTrip.space_left)) return 'find.err.tooHeavy';
-      }
-    }
-    if(!cForm.agree.checked) return 'err.agree';
-    return null;
-  }
-  function resetForm(){
-    cForm.reset(); formStartedAt = 0; photoBlob = null; meTouched = false; carryTouched = false;
-    $('photoPreview').hidden = true; setPickedTrip(null);
-    setRoleUI(); setFormDir(); setDateLimits(); prefillContact();
-  }
-
-  cForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    const problem = validate();
-    if(problem){ say('err', problem); if(problem === 'err.agree') cForm.agree.focus(); return; }
-    if(cForm.website.value){ resetForm(); return say('ok', 'ok.sent'); }   // honeypot: pretend success
-    if(Date.now() - formStartedAt < 3000) return say('err', 'err.tooFast');
-    if(!sb) return say('err', 'backend.off');
-    const traveler = isTraveler();
-    if(!user){
-      pendingSend = true;
-      if(traveler) openAuth(CODES ? 'login' : 'signup', 'auth.travelerLogin', {email: cForm.email.value.trim(), name: cForm.name.value.trim()});
-      else openAuth(CODES ? 'code' : 'signup', 'auth.needLogin', {email: cForm.email.value.trim(), name: cForm.name.value.trim()});
-      return;
-    }
-    if(traveler && !hasPassword){ pendingSend = true; openAuth('change', 'auth.travelerNeedsPw'); return; }
-
-    const v = k => cForm[k].value.trim();
-    const row = {
-      role: traveler ? 'traveler' : 'sender',
-      direction: cForm.dir.value === 'from' ? 'from_addis' : 'to_addis', home_city: cForm.home.value,
-      city: v('city'), details: v('message'),
-      contact_name: v('name'), contact_email: v('email'), contact_phone: v('phone'),
-      agreed_prohibited: true, lang
-    };
-    if(traveler) Object.assign(row, { flight_date: v('flight'), space_kg: Number(v('space')), carry_types: checkedIn($('carryGrid')) });
-    else Object.assign(row, {
-      item_type: v('itype'), weight_kg: Number(v('weight')), ready_date: v('ready'), needed_by: v('needed') || null,
-      handover_name: $('c-ho-name').value.trim(), handover_phone: $('c-ho-phone').value.trim(),
-      pickup_name: $('c-pu-name').value.trim(), pickup_phone: $('c-pu-phone').value.trim()
-    });
-    const btn = $('contactSubmit'); btn.disabled = true; say('ok', 'form.sendingNow');
-    try{
-      if(!traveler) row.photo_path = await uploadPhoto(photoBlob);
-      const { data, error } = await sb.from('requests').insert(row).select('id').single();
-      if(error) throw error;
-      const trip = !traveler && pickedTrip;
-      if(traveler){
-        // Remember what they carry as the default for their next trip.
-        profile = Object.assign(profile || {}, { carry_types: row.carry_types });
-        sb.from('profiles').update({ carry_types: row.carry_types }).eq('id', user.id).then(()=>{}, ()=>{});
-      }
-      resetForm();
-      if(trip){
-        // Propose the item to the traveler they picked; they accept or decline.
-        const { error: pickErr } = await sb.rpc('request_trip', { p_item: data.id, p_trip: trip.trip_id });
-        if(pickErr) say('err', 'find.sentFail', {name: trip.first_name}, [t('ok.openStatus'), '#r' + data.id]);
-        else say('ok', 'find.sent', {name: trip.first_name}, [t('ok.openStatus'), '#r' + data.id]);
-      } else {
-        say('ok', 'ok.sent', null, [t('ok.openStatus'), '#r' + data.id]);
-      }
-    } catch(err){
-      const m = String((err && err.message) || '');
-      say('err', m.includes('rate_limit') ? 'err.rate' : m === 'photo_upload' ? 'err.photoUpload' : m.includes('date_in_past') ? 'err.past' : 'err.save');
-    } finally { btn.disabled = false; }
-  });
-
-  // ---------- hero booking card ----------
+  // ---------- top card, step 1: search ----------
   let heroRole = 'Sender', heroDir = 'to';
   function setHeroRole(role){
     heroRole = role;
     $('tabSend').setAttribute('aria-selected', String(role==='Sender'));
     $('tabTravel').setAttribute('aria-selected', String(role==='Traveler'));
-    $('hTypeField').hidden = role !== 'Sender';
+    $('hTypeField').hidden = $('hWeightField').hidden = role !== 'Sender';
     $('hKgField').hidden = role === 'Sender';
+    $('bookForm').classList.toggle('trav', role !== 'Sender');
     $('h-date-label').textContent = t(role==='Sender' ? 'hero.neededBy' : 'form.flight');
     $('h-date').min = role === 'Sender' ? addDays(todayISO(), 2) : todayISO();
     $('bookBtn').textContent = t(role==='Sender' ? 'hero.btnSend' : 'hero.btnTravel');
@@ -615,20 +639,20 @@
   $('tabTravel').addEventListener('click', ()=>setHeroRole('Traveler'));
   $('swapBtn').addEventListener('click', ()=>setHeroDir(heroDir === 'to' ? 'from' : 'to'));
   $('h-home').addEventListener('change', ()=>setHeroDir(heroDir));
-  $('h-city').addEventListener('input', ()=>{ $('bookErr').hidden = true; });
   $('bookForm').addEventListener('submit', e=>{
     e.preventDefault();
     const city = $('h-city').value.trim(), err = $('bookErr');
-    if(!city){ err.textContent = t('hero.errCity'); err.hidden = false; $('h-city').focus(); return; }
+    const fail = (key, el) => { err.textContent = t(key); err.hidden = false; el.focus(); };
+    if(!city) return fail('hero.errCity', $('h-city'));
     if(heroRole === 'Sender'){
       // "Find a traveler": show the matching trips on the results page.
-      const type = $('h-type').value;
-      if(!type){ err.textContent = t('hero.errType'); err.hidden = false; $('h-type').focus(); return; }
-      location.hash = findHash({ dir: heroDir, city, home: $('h-home').value, type, by: $('h-date').value });
+      const type = $('h-type').value, kg = Number($('h-weight').value);
+      if(!type) return fail('hero.errType', $('h-type'));
+      if(!(kg > 0 && kg <= 100)) return fail('hero.errWeight', $('h-weight'));
+      location.hash = findHash({ dir: heroDir, city, home: $('h-home').value, type, kg: String(kg), by: $('h-date').value });
       return;
     }
-    // "I'm traveling": fill in the trip form below.
-    cForm.querySelector('input[name=role][value="Traveler"]').checked = true; setRoleUI();
+    // "I'm traveling": fill in the trip form in the Contact section.
     cForm.querySelector(`input[name=dir][value="${heroDir}"]`).checked = true;
     cForm.home.value = $('h-home').value; setFormDir();
     cForm.city.value = city;
@@ -637,16 +661,22 @@
     $('contact').scrollIntoView({behavior: reduce?'auto':'smooth'});
     setTimeout(()=>$('c-name').focus({preventScroll:true}), reduce ? 0 : 500);
   });
-  ['h-type', 'h-kg', 'h-date'].forEach(id => $(id).addEventListener('input', ()=>{ $('bookErr').hidden = true; }));
+  ['h-city', 'h-type', 'h-weight', 'h-kg', 'h-date'].forEach(id => $(id).addEventListener('input', ()=>{ $('bookErr').hidden = true; }));
 
   // ---------- find a traveler (results page, #find?...) ----------
-  let lastFind = null, pickedTrip = null, carryTouched = false;
-  const findHash = q => '#find?' + new URLSearchParams(Object.entries(q).filter(([, v]) => v)).toString();
+  let lastFind = null, pendingAlert = null;
+  const findHash = q => '#find?' + new URLSearchParams(Object.entries(searchOf(q)).filter(([, v]) => v)).toString();
+  const sendHash = (q, tripId) => '#send?' + new URLSearchParams(Object.entries(Object.assign(searchOf(q), { trip: tripId })).filter(([, v]) => v)).toString();
+  const tripCache = new Map();   // trips seen in the results, so the Send page opens instantly
   function readFindHash(){
-    const q = new URLSearchParams(location.hash.replace(/^#find\??/, ''));
+    const q = new URLSearchParams(location.hash.replace(/^#(find|send)\??/, ''));
+    const kg = Number(q.get('kg'));
     return { dir: q.get('dir') === 'from' ? 'from' : 'to', city: q.get('city') || '', home: HOME_BY_ID.has(q.get('home')) ? q.get('home') : DEFAULT_HOME,
-             type: ITEM_TYPES.includes(q.get('type')) ? q.get('type') : 'clothes', by: /^\d{4}-\d{2}-\d{2}$/.test(q.get('by') || '') ? q.get('by') : '' };
+             type: ITEM_TYPES.includes(q.get('type')) ? q.get('type') : 'clothes', kg: kg > 0 && kg <= 100 ? String(kg) : '',
+             by: /^\d{4}-\d{2}-\d{2}$/.test(q.get('by') || '') ? q.get('by') : '',
+             trip: /^\d+$/.test(q.get('trip') || '') ? Number(q.get('trip')) : null };
   }
+  const searchOf = q => ({ dir: q.dir, city: q.city, home: q.home, type: q.type, kg: q.kg, by: q.by });
   // Example results for the demo page (no backend connected).
   function demoTrips(q){
     const all = [
@@ -654,38 +684,56 @@
       { trip_id: 9002, first_name: 'Dawit', rating: {avg: null, count: 0}, flight_date: addDays(todayISO(), 14), city: 'Washington DC', home_city: q.home, space_left: 12, carry_types: ['clothes', 'medicine', 'electronics', 'documents', 'food', 'other'] },
       { trip_id: 9003, first_name: 'Meron', rating: {avg: 4.5, count: 2}, flight_date: addDays(todayISO(), 6),  city: q.city || 'Frankfurt', home_city: q.home === 'Addis Ababa' ? 'Bahir Dar' : 'Addis Ababa', space_left: 4, carry_types: ['clothes', 'medicine'] }
     ];
-    return all.filter(r => r.carry_types.includes(q.type) && (!q.by || r.flight_date <= q.by))
+    return all.filter(r => r.carry_types.includes(q.type) && (!q.by || r.flight_date <= q.by) && (!q.kg || r.space_left >= Number(q.kg)))
       .map(r => Object.assign(r, { same_home: r.home_city === q.home, same_city: normCity(r.city) === normCity(q.city) }))
       .sort((a, b) => (b.same_home - a.same_home) || (b.same_city - a.same_city) || (a.flight_date < b.flight_date ? -1 : 1));
   }
   function fillFindForm(q){
     fillHomeSelect($('f2-home'));
-    $('f2-dir').value = q.dir; $('f2-city').value = q.city; $('f2-home').value = q.home; $('f2-type').value = q.type; $('f2-by').value = q.by;
+    $('f2-dir').value = q.dir; $('f2-city').value = q.city; $('f2-home').value = q.home; $('f2-type').value = q.type; $('f2-kg').value = q.kg; $('f2-by').value = q.by;
     $('f2-by').min = addDays(todayISO(), 2);
     $('f2-city-label').textContent = t(q.dir === 'from' ? 'hero.to' : 'hero.from');
+  }
+  // "Email me when a traveler matches" (needs an account).
+  function alertBox(q, labelKey, cls){
+    const wrap = el('div', 'alert-ask ' + (cls || ''));
+    const b = el('button', 'btn ' + (cls === 'big' ? 'btn-primary' : 'btn-ghost btn-sm')); b.type = 'button'; b.textContent = t(labelKey);
+    const st = el('div', 'status'); st.hidden = true; st.setAttribute('role', 'status');
+    b.addEventListener('click', () => saveAlert(q, st, b));
+    wrap.append(b, st); return wrap;
+  }
+  async function saveAlert(q, st, btn){
+    if(!sb) return sayIn(st, 'ok', 'find.alertDemo');
+    if(!user){ pendingAlert = { q, st, btn }; openAuth(CODES ? 'code' : 'signup', 'find.alertLogin'); return; }
+    const row = { direction: q.dir === 'from' ? 'from_addis' : 'to_addis', home_city: q.home, city: q.city || null, item_type: q.type,
+                  weight_kg: q.kg ? Number(q.kg) : null, needed_by: q.by || null, lang };
+    if(btn) btn.disabled = true;
+    const { error } = await sb.from('search_alerts').insert(row);
+    if(error){ if(btn) btn.disabled = false; return sayIn(st, 'err', String(error.message).includes('alert_limit') ? 'find.alertLimit' : 'find.alertErr'); }
+    sayIn(st, 'ok', 'find.alertSaved', {email: user.email}, [t('find.alertManage'), '#account']);
+  }
+  async function searchTrips(q){
+    if(!sb) return demoTrips(q);
+    const { data, error } = await sb.rpc('find_travelers', { p_home: q.home, p_dir: q.dir === 'from' ? 'from_addis' : 'to_addis', p_item: q.type,
+      p_needed_by: q.by || null, p_city: q.city || null, p_weight: q.kg ? Number(q.kg) : null });
+    return error ? null : (data || []);
   }
   async function renderFind(q){
     lastFind = q; fillFindForm(q);
     $('find-title').textContent = t('find.title', {type: lang === 'de' ? typeName(q.type) : typeName(q.type).toLowerCase(), home: homeName(q.home)});
     const box = $('findResults');
     box.innerHTML = `<p class="note">${esc(t('find.loading'))}</p>`;
-    let rows;
-    if(sb){
-      const { data, error } = await sb.rpc('find_travelers', { p_home: q.home, p_dir: q.dir === 'from' ? 'from_addis' : 'to_addis', p_item: q.type, p_needed_by: q.by || null, p_city: q.city || null });
-      if(lastFind !== q) return;            // a newer search started meanwhile
-      if(error){ box.innerHTML = `<p class="status err">${esc(t('find.err'))}</p>`; return; }
-      rows = data || [];
-    } else {
-      rows = demoTrips(q);
-    }
+    const rows = await searchTrips(q);
+    if(lastFind !== q) return;            // a newer search started meanwhile
+    if(!rows){ box.innerHTML = `<p class="status err">${esc(t('find.err'))}</p>`; return; }
+    rows.forEach(r => tripCache.set(r.trip_id, r));
     box.innerHTML = '';
     if(!sb) box.appendChild(el('p', 'alert plain', esc(t('find.demo'))));
     if(!rows.length){
       const empty = el('div', 'find-empty');
       empty.innerHTML = `<h3>${esc(t('find.none'))}</h3><p class="note">${esc(t('find.noneSub'))}</p>`;
-      const b = el('button', 'btn btn-primary'); b.type = 'button'; b.textContent = t('find.postAnyway');
-      b.addEventListener('click', () => pickTrip(null, q));
-      empty.appendChild(b); box.appendChild(empty); return;
+      empty.appendChild(alertBox(q, 'find.alertBtn', 'big'));
+      box.appendChild(empty); return;
     }
     const same = rows.filter(r => r.same_home), other = rows.filter(r => !r.same_home);
     const group = (titleKey, list, noteKey) => {
@@ -698,6 +746,8 @@
     };
     group(same.length === 1 ? 'find.sameHome1' : 'find.sameHome', same);
     group('find.otherHome', other, 'find.otherHomeNote');
+    const more = el('div', 'find-more'); more.appendChild(el('p', 'note', esc(t('find.moreNote'))));
+    more.appendChild(alertBox(q, 'find.alertBtnMore')); box.appendChild(more);
   }
   function tripCard(r, q){
     const c = el('article', 'trip-card');
@@ -717,42 +767,70 @@
     c.appendChild(b);
     return c;
   }
-  // Fill the request form for the chosen traveler (or none) and go to it.
+  // They chose a traveler: go to the Send page.
   function pickTrip(r, q){
-    history.replaceState(null, '', location.pathname + location.search);   // leave the results page
-    setView('home');
-    cForm.querySelector('input[name=role][value="Sender"]').checked = true; setRoleUI();
-    cForm.querySelector(`input[name=dir][value="${q.dir}"]`).checked = true;
-    fillHomeSelect(cForm.home); cForm.home.value = q.home; setFormDir();
-    cForm.city.value = q.city; cForm.itype.value = q.type;
-    if(q.by) $('c-needed').value = q.by;
-    setPickedTrip(r);
-    $('contact').scrollIntoView({behavior: reduce ? 'auto' : 'smooth'});
-    setTimeout(() => $('c-weight').focus({preventScroll: true}), reduce ? 0 : 500);
+    tripCache.set(r.trip_id, r);
+    location.hash = sendHash(q, r.trip_id);
   }
-  function setPickedTrip(r){
-    pickedTrip = r || null;
-    const box = $('tripPick'); box.hidden = !r;
-    $('c-ready').max = r ? addDays(r.flight_date, -1) : '';
-    if(!r) return;
-    $('tripPickInitial').textContent = (r.first_name || '?').charAt(0).toUpperCase();
-    $('tripPickName').textContent = r.first_name;
-    $('tripPickMeta').textContent = t('find.pickMeta', {d: fmtDay(r.flight_date), route: routeLabel(cForm.dir.value, r.city, r.home_city), kg: fmtKg(r.space_left)});
+  // The Send page (#send?...&trip=ID). Works after a refresh too: the search is run again to find the trip.
+  async function renderSendPage(q){
+    fillHero(q);
+    let r = q.trip && tripCache.get(q.trip);
+    if(!r && q.trip){
+      $('send-title').textContent = t('find.loading');
+      sForm.hidden = true; $('sendDone').hidden = true; $('sendGone').hidden = true;
+      const rows = await searchTrips(q);
+      r = rows && rows.find(x => x.trip_id === q.trip);
+      if(r) tripCache.set(r.trip_id, r);
+    }
+    if(!r){
+      sForm.hidden = true; $('sendDone').hidden = true;
+      $('send-title').textContent = t('send.goneTitle');
+      sayIn($('sendGone'), 'err', 'send.gone', null, [t('send.back'), findHash(q)]);
+      return;
+    }
+    openSend(r, q);
+    $('send-title').textContent = t('send.title', {type: lang === 'de' ? typeName(q.type) : typeName(q.type).toLowerCase(), name: r.first_name});
+    setTimeout(() => $('s-ready').focus({preventScroll: true}), 50);
   }
-  $('tripPickClear').addEventListener('click', () => {
-    const q = lastFind; setPickedTrip(null);
-    if(q) location.hash = findHash(q);
-  });
   $('findForm').addEventListener('submit', e => {
     e.preventDefault();
-    const q = { dir: $('f2-dir').value, city: $('f2-city').value.trim(), home: $('f2-home').value, type: $('f2-type').value, by: $('f2-by').value };
+    const q = { dir: $('f2-dir').value, city: $('f2-city').value.trim(), home: $('f2-home').value, type: $('f2-type').value, kg: $('f2-kg').value, by: $('f2-by').value };
     const h = findHash(q);
     if(location.hash === h) renderFind(readFindHash()); else location.hash = h;
   });
   $('f2-dir').addEventListener('change', () => { $('f2-city-label').textContent = t($('f2-dir').value === 'from' ? 'hero.to' : 'hero.from'); });
-  // Switching to "I'm traveling" drops the picked traveler.
-  cForm.querySelectorAll('input[name=role]').forEach(r => r.addEventListener('change', () => { if(isTraveler()) setPickedTrip(null); }));
-  $('carryGrid').addEventListener('change', () => { carryTouched = true; });
+
+  // ---------- My account: traveler alerts ----------
+  async function renderAlerts(){
+    const box = $('myAlerts');
+    if(!sb || !user){ box.innerHTML = ''; return; }
+    const { data, error } = await sb.from('search_alerts').select('id, direction, home_city, city, item_type, weight_kg, needed_by, created_at').order('created_at', {ascending: false});
+    if(error){ box.innerHTML = `<p class="note">${esc(t('acct.loadErr'))}</p>`; return; }
+    if(!data.length){ box.innerHTML = `<p class="note">${esc(t('acct.alertsEmpty'))}</p>`; return; }
+    box.innerHTML = '';
+    data.forEach(a => {
+      const dir = a.direction === 'from_addis' ? 'from' : 'to';
+      const q = { dir, city: a.city || '', home: a.home_city, type: a.item_type, kg: a.weight_kg ? String(Number(a.weight_kg)) : '', by: a.needed_by || '' };
+      const row = el('div', 'my-item alert-item');
+      row.innerHTML = `<div><div class="mi-route">${esc(routeLabel(dir, a.city || '…', a.home_city))}</div>
+        <div class="mi-meta">${esc([typeName(a.item_type), a.weight_kg ? fmtKg(a.weight_kg) : '', a.needed_by ? t('send.byDate', {d: fmtDay(a.needed_by)}) : ''].filter(Boolean).join(' · '))}</div></div>`;
+      const acts = el('div', 'actions');
+      const go = el('a', 'btn btn-ghost btn-sm'); go.href = findHash(q); go.textContent = t('acct.alertSearch');
+      const del = button('acct.alertDelete');
+      twoStep(del, 'acct.alertDeleteConfirm', async () => { await sb.from('search_alerts').delete().eq('id', a.id); renderAlerts(); });
+      acts.append(go, del); row.appendChild(acts); box.appendChild(row);
+    });
+  }
+
+  // ---------- back to top ----------
+  const toTop = $('toTop');
+  function updateToTop(){ toTop.classList.toggle('on', window.scrollY > window.innerHeight * 0.9); }
+  window.addEventListener('scroll', updateToTop, {passive: true});
+  toTop.addEventListener('click', () => {
+    window.scrollTo({top: 0, behavior: reduce ? 'auto' : 'smooth'});
+    const target = document.querySelector('.brand'); if(target) target.focus({preventScroll: true});
+  });
 
   // ---------- visit tracking (anonymous, stored in Supabase) ----------
   function classifySource(){
@@ -853,7 +931,7 @@
   });
   async function renderAccount(){
     if(!user) return;
-    renderCarryCard();
+    renderCarryCard(); renderAlerts();
     const display = (profile && profile.full_name) || (user.email || '').split('@')[0];
     $('account-title').textContent = t('acct.hello', {name: display});
     $('accountEmail').textContent = user.email || '';
@@ -1611,17 +1689,18 @@
     setMenu(nav.dataset.open === 'true');
     fillHomeSelect($('h-home')); fillHomeSelect(cForm.home);
     carryBoxes($('carryGrid'), 'carry'); carryBoxes($('carryProfileGrid'), 'pcarry');
-    if(pickedTrip) setPickedTrip(pickedTrip);
+    setSendTexts();
     setHeroRole(heroRole); setHeroDir(heroDir);
     setRoleUI(); setFormDir();
     setStepCaption(Math.max(0, lastStep));
-    $('bookErr').hidden = true; cStatus.hidden = true;
+    $('bookErr').hidden = true; cStatus.hidden = true; sStatus.hidden = true;
     renderAuthButtons(); prefillContact();
     if(!authOverlay.hidden) renderAuthMode();
     if(view === 'admin') renderDashboard();
     if(view === 'account') renderAccount();
     if(view === 'status' && statusId) renderStatus(statusId);
     if(view === 'find' && lastFind) renderFind(lastFind);
+    if(view === 'send' && sendQuery && pickedTrip && !sForm.hidden) $('send-title').textContent = t('send.title', {type: lang === 'de' ? typeName(sendQuery.type) : typeName(sendQuery.type).toLowerCase(), name: pickedTrip.first_name});
   }
   document.querySelectorAll('.lang button').forEach(b=>b.addEventListener('click', ()=>{
     if(b.dataset.lang === lang) return;

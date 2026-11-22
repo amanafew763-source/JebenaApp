@@ -612,6 +612,65 @@ begin
 end;
 $$;
 
+-- ---------- traveler alerts ("Email me when a traveler matches") ----------
+create table public.search_alerts (
+  id           bigint generated always as identity primary key,
+  user_id      uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  direction    public.request_dir not null,
+  home_city    text not null check (public.home_country(home_city) is not null),
+  city         text check (char_length(btrim(city)) <= 80),
+  item_type    public.item_type not null,
+  weight_kg    numeric(5, 1) check (weight_kg > 0 and weight_kg <= 100),
+  needed_by    date,
+  lang         text not null default 'en' check (lang in ('en', 'de')),
+  notified_at  timestamptz,          -- last email about a matching trip (at most one a day)
+  created_at   timestamptz not null default now()
+);
+create index search_alerts_user_idx on public.search_alerts (user_id);
+
+-- At most 10 alerts per person, and none for dates already past.
+create function public.prepare_search_alert()
+returns trigger language plpgsql security definer set search_path = '' as $$
+begin
+  if (select count(*) from public.search_alerts a where a.user_id = new.user_id) >= 10 then
+    raise exception 'alert_limit' using errcode = 'P0001';
+  end if;
+  if new.needed_by is not null and new.needed_by < current_date then
+    raise exception 'date_in_past' using errcode = 'P0001';
+  end if;
+  return new;
+end;
+$$;
+create trigger search_alerts_prepare before insert on public.search_alerts
+  for each row execute function public.prepare_search_alert();
+
+-- Called by the email function when a trip is posted: returns the alerts it
+-- matches (and their owners' email) and marks them notified. Service role only.
+create function public.claim_alerts_for_trip(p_trip bigint)
+returns table (alert_id bigint, email text, lang text, direction public.request_dir, home_city text, city text,
+               item_type public.item_type, weight_kg numeric, needed_by date)
+language plpgsql security definer set search_path = '' as $$
+declare
+  t public.requests;
+begin
+  select * into t from public.requests where id = p_trip and role = 'traveler' and status in ('new', 'waiting', 'matched');
+  if t.id is null or t.carry_types is null or t.flight_date < current_date + 1 then return; end if;
+  return query
+    with hit as (
+      update public.search_alerts a set notified_at = now()
+       where a.direction = t.direction
+         and public.home_country(a.home_city) = public.home_country(t.home_city)
+         and a.item_type = any (t.carry_types)
+         and (a.needed_by is null or (a.needed_by >= current_date and t.flight_date <= a.needed_by))
+         and coalesce(a.weight_kg, 0.1) <= t.space_kg - public.trip_used_kg(t.id)
+         and a.user_id <> t.user_id
+         and (a.notified_at is null or a.notified_at < now() - interval '1 day')
+      returning a.*)
+    select h.id, u.email::text, h.lang, h.direction, h.home_city, h.city, h.item_type, h.weight_kg, h.needed_by
+      from hit h join auth.users u on u.id = h.user_id;
+end;
+$$;
+
 -- ---------- admin notes ----------
 create table public.request_notes (
   id          bigint generated always as identity primary key,
@@ -668,6 +727,7 @@ alter table public.matches        enable row level security;
 alter table public.ratings        enable row level security;
 alter table public.request_notes  enable row level security;
 alter table public.visits         enable row level security;
+alter table public.search_alerts  enable row level security;
 
 create policy "Profiles: read own or admin" on public.profiles for select to authenticated
   using (id = (select auth.uid()) or (select public.is_admin()));
@@ -687,11 +747,17 @@ create policy "Matches: admin reads" on public.matches        for select to auth
 create policy "Ratings: admin reads" on public.ratings        for select to authenticated using ((select public.is_admin()));
 create policy "Notes: admin reads"   on public.request_notes  for select to authenticated using ((select public.is_admin()));
 create policy "Notes: admin writes"  on public.request_notes  for insert to authenticated with check ((select public.is_admin()));
+create policy "Alerts: read own or admin" on public.search_alerts for select to authenticated
+  using (user_id = (select auth.uid()) or (select public.is_admin()));
+create policy "Alerts: create own" on public.search_alerts for insert to authenticated
+  with check (user_id = (select auth.uid()) and notified_at is null);
+create policy "Alerts: delete own" on public.search_alerts for delete to authenticated
+  using (user_id = (select auth.uid()));
 create policy "Visits: admin reads"  on public.visits         for select to authenticated using ((select public.is_admin()));
 
 -- ---------- table, column and function privileges ----------
 revoke all on public.profiles, public.requests, public.request_events, public.matches,
-              public.ratings, public.request_notes, public.visits from anon, authenticated;
+              public.ratings, public.request_notes, public.visits, public.search_alerts from anon, authenticated;
 
 grant select on public.profiles to authenticated;
 grant update (full_name, carry_types) on public.profiles to authenticated;     -- never is_admin
@@ -705,6 +771,8 @@ grant update (status, fee_usd) on public.requests to authenticated;  -- policy l
 
 grant select on public.request_events, public.matches, public.ratings, public.visits to authenticated;  -- policies: admins only
 grant select on public.request_notes to authenticated;
+grant select, delete on public.search_alerts to authenticated;
+grant insert (direction, home_city, city, item_type, weight_kg, needed_by, lang) on public.search_alerts to authenticated;
 grant insert (request_id, body) on public.request_notes to authenticated;
 
 do $$
@@ -713,7 +781,8 @@ begin
   -- internal helpers: nobody calls these directly
   foreach f in array array['public.handle_new_user()', 'public.prepare_new_request()', 'public.log_request_status()',
                            'public.touch_updated_at()', 'public.settle_trip(bigint)', 'public.my_trip_match(bigint)',
-                           'public.trip_used_kg(bigint)', 'public.make_match(bigint, bigint, boolean)'] loop
+                           'public.trip_used_kg(bigint)', 'public.make_match(bigint, bigint, boolean)',
+                           'public.prepare_search_alert()', 'public.claim_alerts_for_trip(bigint)'] loop
     execute format('revoke all on function %s from public, anon, authenticated', f);
   end loop;
   -- called from the website by logged-in users (each checks who is calling)
@@ -733,6 +802,8 @@ begin
   end loop;
 end;
 $$;
+
+grant execute on function public.claim_alerts_for_trip(bigint) to service_role;   -- the email function only
 
 -- ---------- item photos (Supabase Storage) ----------
 -- Private bucket, 5 MB per photo. Each user uploads into a folder named
