@@ -1,5 +1,5 @@
 -- =====================================================================
--- Jebena Express — update of 22 Nov 2026 (3): traveler alerts
+-- EthioCarry — update of 22 Nov 2026 (3): traveler alerts
 --
 -- Run this ONCE, after 2026-11-22-find-traveler.sql (SQL Editor → New
 -- query → paste → Run). Safe to run again. Fresh projects don't need it.

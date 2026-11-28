@@ -1,5 +1,5 @@
 -- =====================================================================
--- Jebena Express — email notifications (run AFTER schema.sql)
+-- EthioCarry — email notifications (run AFTER schema.sql)
 --
 -- When a request is created or its status changes, and when an item is
 -- proposed to a traveler (or that match is cancelled), the database calls

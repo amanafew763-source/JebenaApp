@@ -1,5 +1,5 @@
 -- =====================================================================
--- Jebena Express — update of 22 Nov 2026 (2): "Find a traveler"
+-- EthioCarry — update of 22 Nov 2026 (2): "Find a traveler"
 --
 -- Run this ONCE, after 2026-11-22-cities.sql, on a database that was set up
 -- with an older schema.sql (SQL Editor → New query → paste → Run). It is

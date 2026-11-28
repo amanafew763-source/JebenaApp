@@ -661,3 +661,8 @@ body.send-mode main > :not(#sendWrap){display:none}
 body.trip-mode main > :not(#tripWrap){display:none}
 #contact .contact-grid{grid-template-columns:minmax(0,1fr)}
 #contact .contact-copy{max-width:720px}
+
+/* fields left empty or invalid when sending */
+input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="true"]{border-color:var(--danger-ink) !important;box-shadow:0 0 0 3px var(--danger-soft)}
+input[type=checkbox][aria-invalid="true"]{outline:2px solid var(--danger-ink);outline-offset:2px}
+input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7;font-style:italic}

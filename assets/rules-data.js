@@ -1,4 +1,4 @@
-// Jebena Express — customs rules by country and direction.
+// EthioCarry — customs rules by country and direction.
 // Shared by the home page (assets/app.js) and the rules page (rules.html).
 (function(){
   const GOVUK_ET = ['GOV.UK: Ethiopia entry requirements', 'https://www.gov.uk/foreign-travel-advice/ethiopia/entry-requirements'];

@@ -1,4 +1,4 @@
-// Jebena Express — "notify" Edge Function.
+// EthioCarry — "notify" Edge Function.
 //
 // Called by the database (supabase/email-notifications.sql):
 //   { event: 'insert' | 'update', request_id }        a request was created or its status changed
@@ -12,8 +12,8 @@
 // Secrets (Supabase dashboard → Edge Functions → Secrets, or `supabase secrets set`):
 //   NOTIFY_WEBHOOK_SECRET  same random value as 'notify_secret' in Vault
 //   RESEND_API_KEY         from resend.com → API Keys
-//   EMAIL_FROM             e.g. "Jebena Express <updates@yourdomain.com>" (a verified Resend domain)
-//   SITE_URL               your live site, e.g. https://jebena-express.pages.dev
+//   EMAIL_FROM             e.g. "EthioCarry <updates@yourdomain.com>" (a verified Resend domain)
+//   SITE_URL               your live site, e.g. https://ethiocarry.pages.dev
 //   ADMIN_EMAIL            optional: where new-request alerts go; also the reply-to address
 // SUPABASE_URL and the service key are provided by Supabase automatically.
 
@@ -39,7 +39,7 @@ const TEXT = {
     addis: 'Addis Ababa', ref: 'Request', trip: 'Trip', route: 'Route', item: 'Item', weight: 'Weight', ready: 'Ready from',
     neededBy: 'Needed by', flight: 'Flight date', space: 'Space', fee: 'Agreed fee', details: 'Details',
     button: 'Open the status page', hello: 'Hello {name},',
-    footer: 'You’re getting this email because you used Jebena Express. Reply to this email if you have questions.',
+    footer: 'You’re getting this email because you used EthioCarry. Reply to this email if you have questions.',
     alert: ['A traveler for your {type}: {route}', '{name} is flying {route} on {date} and is willing to carry {type}. Open the search to see the details and send your item with them.'],
     alertButton: 'See travelers', alertHello: 'Hello,', alertOff: 'You asked us to email you when a traveler matches. You can delete this alert under My account.',
     types: { clothes: 'Clothes', medicine: 'Medicine', electronics: 'Electronics', documents: 'Documents', food: 'Food', other: 'Other' } as Record<string, string>,
@@ -49,7 +49,7 @@ const TEXT = {
       matched: ['We found a traveler: {route}', 'We’ve proposed your item to a traveler on this route. As soon as they accept, you’ll get their contact details to arrange the handover.'],
       accepted: ['The traveler accepted your item', 'Good news: the traveler accepted. Their name and phone number are on your status page so you can arrange the handover. Your pickup code is there too: give it to the person collecting the item.'],
       handed_over: ['Your item is with the traveler', 'The traveler has your item. At pickup, the recipient gives them the pickup code from your status page.'],
-      delivered: ['Picked up: {route}', 'The item was picked up and the pickup code confirmed. Thank you for using Jebena Express. You can rate the traveler on your status page.'],
+      delivered: ['Picked up: {route}', 'The item was picked up and the pickup code confirmed. Thank you for using EthioCarry. You can rate the traveler on your status page.'],
       cancelled: ['Request cancelled: {route}', 'This request has been cancelled. If that’s a mistake, reply to this email and we’ll sort it out.']
     } as Record<string, [string, string]>,
     traveler: {
@@ -63,7 +63,7 @@ const TEXT = {
     addis: 'Addis Abeba', ref: 'Anfrage', trip: 'Reise', route: 'Strecke', item: 'Artikel', weight: 'Gewicht', ready: 'Bereit ab',
     neededBy: 'Benötigt bis', flight: 'Flugdatum', space: 'Platz', fee: 'Vereinbarte Gebühr', details: 'Details',
     button: 'Statusseite öffnen', hello: 'Hallo {name},',
-    footer: 'Du bekommst diese E-Mail, weil du Jebena Express nutzt. Antworte einfach auf diese E-Mail, wenn du Fragen hast.',
+    footer: 'Du bekommst diese E-Mail, weil du EthioCarry nutzt. Antworte einfach auf diese E-Mail, wenn du Fragen hast.',
     alert: ['Reisende Person für deine {type}: {route}', '{name} fliegt am {date} {route} und nimmt {type} mit. Öffne die Suche, um die Details zu sehen und deinen Artikel mitzuschicken.'],
     alertButton: 'Reisende ansehen', alertHello: 'Hallo,', alertOff: 'Du wolltest eine E-Mail, sobald eine reisende Person passt. Unter „Mein Konto“ kannst du diese Benachrichtigung löschen.',
     types: { clothes: 'Kleidung', medicine: 'Medikamente', electronics: 'Elektronik', documents: 'Dokumente', food: 'Lebensmittel', other: 'Sonstiges' } as Record<string, string>,
@@ -73,7 +73,7 @@ const TEXT = {
       matched: ['Wir haben eine reisende Person gefunden: {route}', 'Wir haben deinen Artikel einer reisenden Person vorgeschlagen. Sobald sie zusagt, bekommst du ihre Kontaktdaten, um die Übergabe zu vereinbaren.'],
       accepted: ['Die reisende Person hat zugesagt', 'Gute Nachricht: Die reisende Person hat zugesagt. Name und Telefonnummer stehen auf deiner Statusseite, damit ihr die Übergabe vereinbaren könnt. Dort findest du auch den Abholcode: Gib ihn der Person, die den Artikel abholt.'],
       handed_over: ['Dein Artikel ist bei der reisenden Person', 'Die reisende Person hat deinen Artikel. Bei der Abholung nennt die empfangende Person den Abholcode von deiner Statusseite.'],
-      delivered: ['Abgeholt: {route}', 'Der Artikel wurde abgeholt und der Abholcode bestätigt. Danke, dass du Jebena Express nutzt. Auf deiner Statusseite kannst du die reisende Person bewerten.'],
+      delivered: ['Abgeholt: {route}', 'Der Artikel wurde abgeholt und der Abholcode bestätigt. Danke, dass du EthioCarry nutzt. Auf deiner Statusseite kannst du die reisende Person bewerten.'],
       cancelled: ['Anfrage storniert: {route}', 'Diese Anfrage wurde storniert. Falls das ein Irrtum ist, antworte auf diese E-Mail, und wir klären das.']
     } as Record<string, [string, string]>,
     traveler: {
@@ -128,7 +128,7 @@ function layout(o: { title: string; greeting: string; intro: string; rows: [stri
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f2f0eb;padding:24px 12px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:16px;overflow:hidden">
 <tr><td style="height:6px;font-size:0;line-height:0;background-color:#0f7a55;background-image:linear-gradient(90deg,#0f7a55 0 40%,#dca843 40% 50%,#b8402f 50% 90%,#dca843 90%)"></td></tr>
-<tr><td style="padding:28px 28px 8px"><div style="font-weight:800;font-size:18px;color:#0f7a55">Jebena Express</div>
+<tr><td style="padding:28px 28px 8px"><div style="font-weight:800;font-size:18px;color:#0f7a55">EthioCarry</div>
 <h1 style="font-size:22px;line-height:1.25;color:#18140f;margin:18px 0 12px">${esc(o.title)}</h1>
 <p style="font-size:15px;line-height:1.55;color:#18140f;margin:0 0 6px">${esc(o.greeting)}</p>
 <p style="font-size:15px;line-height:1.55;color:#18140f;margin:0 0 16px">${esc(o.intro)}</p>
@@ -187,7 +187,7 @@ export function adminEmail(r: Req, siteUrl: string): Mail {
   const rows: [string, string][] = [['Name', r.contact_name], ['Email', r.contact_email],
     ...(r.role === 'traveler' ? tripRows(r, 'en') : itemRows(r, 'en')), ['Language', r.lang === 'de' ? 'German' : 'English']];
   const o = { title: subject, greeting: 'Hello,', intro: `A new ${what} just came in.`, rows,
-    button: siteUrl ? ['Open the admin dashboard', siteUrl] as [string, string] : undefined, footer: 'Sent automatically by your Jebena Express site.' };
+    button: siteUrl ? ['Open the admin dashboard', siteUrl] as [string, string] : undefined, footer: 'Sent automatically by your EthioCarry site.' };
   return { subject, html: layout(o), text: plain(o) };
 }
 

@@ -1,4 +1,4 @@
-// Jebena Express — front-end application.
+// EthioCarry — front-end application.
 // Talks directly to Supabase; all access rules live in supabase/schema.sql.
 (function(){
   'use strict';
@@ -394,6 +394,25 @@
       if(!formFlag){ formFlag = true; pushVisit(); }
     });
   }
+  // Missing or invalid fields: outline them, name them in the message, and jump to the first one.
+  function clearInvalid(form){ form.querySelectorAll('[aria-invalid="true"]').forEach(i => i.removeAttribute('aria-invalid')); }
+  function flagFields(form, names){
+    clearInvalid(form);
+    names.forEach(n => { const i = form[n]; if(i) i.setAttribute('aria-invalid', 'true'); });
+    const first = form[names[0]];
+    if(first){
+      // A "That's me" field is locked: point at your own details instead.
+      const target = first.disabled ? form[first.name.endsWith('Phone') ? 'phone' : 'name'] : first;
+      target.focus({preventScroll: true}); target.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'center'});
+    }
+  }
+  // Returns {key, vars, fields} for the first problem, or null.
+  function missingCheck(form, fields){
+    const empty = fields.filter(([n]) => !form[n].value.trim());
+    if(!empty.length) return null;
+    return { key: 'err.missing', vars: { fields: empty.map(([, label]) => label()).join(', ') }, fields: empty.map(([n]) => n) };
+  }
+  document.addEventListener('input', e => { if(e.target.getAttribute && e.target.getAttribute('aria-invalid') === 'true') e.target.removeAttribute('aria-invalid'); });
   const saveErrKey = err => { const m = String((err && err.message) || ''); return m.includes('rate_limit') ? 'err.rate' : m === 'photo_upload' ? 'err.photoUpload' : m.includes('date_in_past') ? 'err.past' : 'err.save'; };
 
   // ---------- "List my trip" (Contact section, travelers) ----------
@@ -420,15 +439,17 @@
     $('c-flight').min = today; $('s-ready').min = today;
   }
   function validateTrip(){
-    const v = k => cForm[k].value.trim();
-    if(!v('name') || !v('email') || !v('phone') || !v('city') || !v('message')) return 'err.fill';
-    if(!EMAIL_RE.test(v('email'))) return 'err.email';
-    if(!PHONE_RE.test(v('phone'))) return 'err.phone';
-    if(!v('flight') || !v('space')) return 'err.fillTrip';
-    if(v('flight') < todayISO()) return 'err.past';
-    const kg = Number(v('space')); if(!(kg > 0 && kg <= 100)) return 'err.space';
-    if(!checkedIn($('carryGrid')).length) return 'err.carry';
-    if(!cForm.agree.checked) return 'err.agree';
+    const v = k => cForm[k].value.trim(), P = (key, ...fields) => ({ key, fields });
+    const miss = missingCheck(cForm, [
+      ['city', () => $('c-city-label').textContent], ['flight', () => t('form.flight')], ['space', () => t('form.space')],
+      ['name', () => t('form.name')], ['email', () => t('form.email')], ['phone', () => t('form.phone')], ['message', () => t('form.msgTrip')]]);
+    if(miss) return miss;
+    if(!EMAIL_RE.test(v('email'))) return P('err.email', 'email');
+    if(!PHONE_RE.test(v('phone'))) return P('err.phone', 'phone');
+    if(v('flight') < todayISO()) return P('err.past', 'flight');
+    const kg = Number(v('space')); if(!(kg > 0 && kg <= 100)) return P('err.space', 'space');
+    if(!checkedIn($('carryGrid')).length) return P('err.carry');
+    if(!cForm.agree.checked) return P('err.agree', 'agree');
     return null;
   }
   function resetForm(){
@@ -438,7 +459,8 @@
   cForm.addEventListener('submit', async e => {
     e.preventDefault();
     const problem = validateTrip();
-    if(problem){ say('err', problem); if(problem === 'err.agree') cForm.agree.focus(); return; }
+    if(problem){ say('err', problem.key, problem.vars); flagFields(cForm, problem.fields || []); return; }
+    clearInvalid(cForm);
     if(cForm.website.value){ resetForm(); return say('ok', 'ok.sent'); }   // honeypot: pretend success
     if(Date.now() - (cForm._startedAt || 0) < 3000) return say('err', 'err.tooFast');
     if(!sb) return say('err', 'backend.off');
@@ -506,6 +528,7 @@
     const box = $('s-' + which + '-me'); box.checked = on;
     const n = $('s-' + which + '-name'), ph = $('s-' + which + '-phone');
     n.disabled = ph.disabled = on;
+    $('s-' + which + '-note').hidden = !on;
     if(on){ n.value = sForm.name.value; ph.value = sForm.phone.value; }
     else if(n.value === sForm.name.value && ph.value === sForm.phone.value){ n.value = ''; ph.value = ''; }
   }
@@ -540,16 +563,22 @@
     return path;
   }
   function validateSend(){
-    const v = k => sForm[k].value.trim(), q = sendQuery, r = pickedTrip;
-    if(!q || !r) return 'err.save';
-    if(!v('ready') || !v('message') || !v('hoName') || !v('hoPhone') || !v('puName') || !v('puPhone')) return 'err.fillItem';
-    if(!v('name') || !v('email') || !v('phone')) return 'err.fill';
-    if(!EMAIL_RE.test(v('email'))) return 'err.email';
-    if(!PHONE_RE.test(v('phone')) || !PHONE_RE.test(v('hoPhone')) || !PHONE_RE.test(v('puPhone'))) return 'err.phone';
-    if(v('ready') < todayISO()) return 'err.past';
-    if(v('ready') > addDays(r.flight_date, -1)) return 'find.err.readyLate';
-    if(!photoBlob) return 'err.photo';
-    if(!sForm.agree.checked) return 'err.agree';
+    const v = k => sForm[k].value.trim(), q = sendQuery, r = pickedTrip, P = (key, ...fields) => ({ key, fields });
+    if(!q || !r) return P('err.save');
+    const ho = () => t('send.f.ho'), pu = () => t('send.f.pu'), you = () => t('send.f.you');
+    const miss = missingCheck(sForm, [
+      ['ready', () => t('form.ready')], ['message', () => t('form.msgItem')],
+      ['name', () => `${you()}: ${t('form.name')}`], ['email', () => `${you()}: ${t('form.email')}`], ['phone', () => `${you()}: ${t('form.phone')}`],
+      ['hoName', () => `${ho()}: ${t('form.name')}`], ['hoPhone', () => `${ho()}: ${t('form.phone')}`],
+      ['puName', () => `${pu()}: ${t('form.name')}`], ['puPhone', () => `${pu()}: ${t('form.phone')}`]]);
+    if(miss) return miss;
+    if(!EMAIL_RE.test(v('email'))) return P('err.email', 'email');
+    const badPhone = ['phone', 'hoPhone', 'puPhone'].filter(k => !PHONE_RE.test(v(k)));
+    if(badPhone.length) return P('err.phone', ...badPhone);
+    if(v('ready') < todayISO()) return P('err.past', 'ready');
+    if(v('ready') > addDays(r.flight_date, -1)) return P('find.err.readyLate', 'ready');
+    if(!photoBlob) return P('err.photo', 'photo');
+    if(!sForm.agree.checked) return P('err.agree', 'agree');
     return null;
   }
   // Fill the Send page for the traveler they chose.
@@ -593,7 +622,8 @@
   sForm.addEventListener('submit', async e => {
     e.preventDefault();
     const problem = validateSend();
-    if(problem){ sSay('err', problem); if(problem === 'err.agree') sForm.agree.focus(); return; }
+    if(problem){ sSay('err', problem.key, problem.vars); flagFields(sForm, problem.fields || []); return; }
+    clearInvalid(sForm);
     if(sForm.website.value){ resetSend(); return; }   // honeypot
     if(Date.now() - (sForm._startedAt || 0) < 3000) return sSay('err', 'err.tooFast');
     if(!sb) return sSay('err', 'backend.off');
@@ -1478,7 +1508,7 @@
     const lines = [cols.join(',')].concat(filteredRows(lastD.orderRows).map(r => [r.id, new Date(r.at).toISOString(), r.role === 'Traveler' ? 'trip' : 'item',
       r.dir === 'from' ? 'from' : 'to', r.home, r.city, r.status, r.name, r.email, r.phone, r.itemType, r.weight, r.ready, r.needed, r.flight, r.space, r.fee, r.message].map(cell).join(',')));
     const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
-    const a = el('a'); a.href = URL.createObjectURL(blob); a.download = `jebena-express-requests-${todayISO()}.csv`;
+    const a = el('a'); a.href = URL.createObjectURL(blob); a.download = `ethiocarry-requests-${todayISO()}.csv`;
     document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
   });
 

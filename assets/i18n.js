@@ -1,4 +1,4 @@
-// Jebena Express translations (English and German).
+// EthioCarry translations (English and German).
 // English for static page text is read from index.html; the "en" block
 // only holds text that the script builds.
 window.JEBENA_I18N = {
@@ -62,12 +62,12 @@ window.JEBENA_I18N = {
       'dur':'{m}m {s}s', 'durS':'{s}s'
     },
     de: {
-      'brand.aria':'Jebena Express Startseite', 'lang.label':'Sprache',
+      'brand.aria':'EthioCarry Startseite', 'lang.label':'Sprache',
       'nav.home':'Startseite', 'nav.about':'Über uns', 'nav.contact':'Kontakt', 'nav.admin':'Admin', 'nav.login':'Anmelden', 'nav.logout':'Abmelden',
       'menu.open':'Menü öffnen', 'menu.close':'Menü schließen',
       'hero.pill':'Ab nach Hause',
       'hero.title':'Dein Paket reist im Koffer <em>mit nach Hause.</em>',
-      'hero.lead':'Jebena Express bringt Menschen, die etwas zwischen Addis Abeba und der Diaspora verschicken möchten, mit Reisenden zusammen, die noch Platz im Gepäck haben. Die Gebühr steht vorher fest, und der Artikel wird persönlich abgeholt.',
+      'hero.lead':'EthioCarry bringt Menschen, die etwas zwischen Addis Abeba und der Diaspora verschicken möchten, mit Reisenden zusammen, die noch Platz im Gepäck haben. Die Gebühr steht vorher fest, und der Artikel wird persönlich abgeholt.',
       'hero.tabsLabel':'Ich möchte', 'hero.tabSend':'Transport anfragen', 'hero.tabTravel':'Ich reise',
       'hero.from':'Von', 'hero.to':'Nach', 'hero.cityPh':'z. B. Frankfurt', 'hero.swap':'Richtung tauschen', 'place.addis':'Addis Abeba',
       'hero.errCity':'Gib die Stadt am anderen Ende der Reise ein, etwa Frankfurt oder Washington DC.',
@@ -316,7 +316,7 @@ Object.assign(window.JEBENA_I18N.en, {
   'auth.needLogin':'Confirm your email to send your request. We’ll email you a 6-digit code, no password needed. Your request stays in the form.',
   'auth.travelerLogin':'Travelers log in with a password. New here? Create a traveler account below. Your request stays in the form.',
   'auth.travelerNeedsPw':'To offer space as a traveler, set a password for your account first. Your request is sent right after.',
-  'acct.setPw':'Set a password', 'acct.setPwHint':'Needed if you want to travel with Jebena Express'
+  'acct.setPw':'Set a password', 'acct.setPwHint':'Needed if you want to travel with EthioCarry'
 });
 Object.assign(window.JEBENA_I18N.de, {
   'auth.code.eyebrow':'Anmelden oder registrieren', 'auth.code.title':'Weiter mit deiner E-Mail', 'auth.code.submit':'Code per E-Mail senden',
@@ -337,7 +337,7 @@ Object.assign(window.JEBENA_I18N.de, {
   'auth.needLogin':'Bestätige deine E-Mail-Adresse, um deine Anfrage zu senden. Wir schicken dir einen 6-stelligen Code, ganz ohne Passwort. Deine Anfrage bleibt im Formular.',
   'auth.travelerLogin':'Reisende melden sich mit Passwort an. Neu hier? Erstelle unten ein Reisekonto. Deine Anfrage bleibt im Formular.',
   'auth.travelerNeedsPw':'Um als Reisende(r) Platz anzubieten, lege zuerst ein Passwort für dein Konto fest. Deine Anfrage wird direkt danach gesendet.',
-  'acct.setPw':'Passwort festlegen', 'acct.setPwHint':'Nötig, wenn du mit Jebena Express reisen möchtest'
+  'acct.setPw':'Passwort festlegen', 'acct.setPwHint':'Nötig, wenn du mit EthioCarry reisen möchtest'
 });
 
 // ---------------------------------------------------------------------
@@ -540,7 +540,7 @@ Object.assign(window.JEBENA_I18N.de, {
 
 // ---------- 22 Nov 2026: Ethiopian cities, rules pop-up ----------
 Object.assign(window.JEBENA_I18N.en, {
-  'rp.title':'Jebena Express Rules', 'rp.back':'← Back to Jebena Express', 'rp.close':'Close window ✕', 'rp.jump':'On this page',
+  'rp.title':'EthioCarry Rules', 'rp.back':'← Back to EthioCarry', 'rp.close':'Close window ✕', 'rp.jump':'On this page',
   'country.ET':'Ethiopia',
   'dir.to':'Into {c}', 'dir.from':'Out of {c}',
   'form.dirTo':'To {home}', 'form.dirFrom':'From {home}',
@@ -556,7 +556,7 @@ Object.assign(window.JEBENA_I18N.en, {
   'form.agree.traveler':'I’ve read the <a class="inline-link" href="rules.html#travelers" target="_blank" rel="noopener">traveler rules</a>. I’ll inspect every item before I pack it and refuse anything on the <a class="inline-link" href="rules.html#items" target="_blank" rel="noopener">prohibited items list</a>.'
 });
 Object.assign(window.JEBENA_I18N.de, {
-  'rp.title':'Jebena Express Regeln', 'rp.back':'← Zurück zu Jebena Express', 'rp.close':'Fenster schließen ✕', 'rp.jump':'Auf dieser Seite',
+  'rp.title':'EthioCarry Regeln', 'rp.back':'← Zurück zu EthioCarry', 'rp.close':'Fenster schließen ✕', 'rp.jump':'Auf dieser Seite',
   'country.ET':'Äthiopien',
   'dir.to':'Nach {c}', 'dir.from':'Aus {c}',
   'form.dirTo':'Nach {home}', 'form.dirFrom':'Aus {home}',
@@ -566,7 +566,7 @@ Object.assign(window.JEBENA_I18N.de, {
   'm.sameCity':'Gleiche Stadt ({c})', 'm.otherCity':'Andere Stadt: {c}',
   'm.err.wrong_country':'Diese Anfragen sind für verschiedene Länder und können nicht vermittelt werden.',
   'm.err.needs_confirm':'Bitte bestätige diese Vermittlung: Die Städte sind verschieden oder die Namen ähneln sich.',
-  'hero.lead':'Jebena Express bringt Menschen, die etwas zwischen Äthiopien und der Diaspora verschicken möchten, mit Reisenden zusammen, die noch Platz im Gepäck haben. Die Gebühr steht vorher fest, und der Artikel wird persönlich abgeholt.',
+  'hero.lead':'EthioCarry bringt Menschen, die etwas zwischen Äthiopien und der Diaspora verschicken möchten, mit Reisenden zusammen, die noch Platz im Gepäck haben. Die Gebühr steht vorher fest, und der Artikel wird persönlich abgeholt.',
   'routeNote':'Unsere Strecken: <b>Äthiopien ⇄ Diaspora</b>: Addis Abeba und 16 weitere Städte, in beide Richtungen.',
   'about.lead':'Ein Paket zwischen Äthiopien und Washington, London oder Frankfurt zu verschicken, kostet oft mehr als der Inhalt und dauert Wochen. Gleichzeitig fliegen jeden Tag Menschen mit halb leeren Koffern auf diesen Strecken. Wir bringen beides zusammen.',
   'step1.text':'Sag uns, was du schickst, wie viel es ungefähr wiegt und in welche Stadt in Äthiopien es geht oder von wo es kommt. Ein Handy für deinen Vater, Schulsachen, Kaffee und Berbere für deine Schwester im Ausland: Was durch den Zoll darf, kann mit.',
@@ -585,7 +585,7 @@ Object.assign(window.JEBENA_I18N.de, {
   'rules.title':'Zollregeln', 'rules.seeAll':'Alle Regeln und verbotenen Artikel ansehen',
   'rules.sub':'Die Regeln hängen davon ab, in welche Richtung der Artikel reist.',
   'rules.note':'Regeln ändern sich, und der Zoll hat das letzte Wort. Zuletzt geprüft im November 2026. Kläre die Regeln vor der Reise mit der Botschaft.',
-  'cust.lead':'Diese Regeln gelten für alle, die über Jebena Express etwas verschicken oder empfangen.',
+  'cust.lead':'Diese Regeln gelten für alle, die über EthioCarry etwas verschicken oder empfangen.',
   'cust.1':'Beschreibe deinen Artikel ehrlich, mit einem echten Foto und seinem tatsächlichen Gewicht.',
   'cust.2':'Lass den Artikel offen, damit die reisende Person ihn prüfen kann. Reisende können jeden Artikel ablehnen, aus jedem Grund. Keine verklebten Kartons und keine eingepackten Geschenke.',
   'cust.3':'Schick nur, was erlaubt ist: Prüfe die verbotenen Artikel und die Zollregeln für deine Strecke.',
@@ -594,13 +594,13 @@ Object.assign(window.JEBENA_I18N.de, {
   'cust.6':'Gib den Abholcode nur der Person, die den Artikel abholt, und erst, wenn sie ihn in der Hand hat.',
   'cust.7':'Sei pünktlich und unter der angegebenen Telefonnummer erreichbar, bei der Übergabe und bei der Abholung.',
   'cust.8':'Begegne Reisenden mit Respekt. Sie tragen deinen Artikel in ihrem eigenen Gepäck und stehen am Zoll dafür ein.',
-  'cust.9':'Jebena Express bringt Menschen zusammen. Wir sind kein Versandunternehmen und versichern keine Artikel. Schick also nichts, dessen Verlust du dir nicht leisten kannst.',
+  'cust.9':'EthioCarry bringt Menschen zusammen. Wir sind kein Versandunternehmen und versichern keine Artikel. Schick also nichts, dessen Verlust du dir nicht leisten kannst.',
   'trav.lead':'Reisende stehen für alles in ihrem Koffer ein. Zu deinem Schutz nehmen Reisende nie mit:',
   'trav.never':'Nie mitnehmen', 'trav.always':'Immer',
   'tno.1':'Alles, was auf der Liste verbotener Artikel steht oder auf deiner Strecke vom Zoll verboten ist',
   'tno.2':'Verschlossene Pakete oder alles, was du nicht selbst geöffnet und geprüft hast',
   'tno.3':'Bargeld, Gold oder Schmuck für andere',
-  'tno.4':'Artikel von Personen, mit denen du nicht über Jebena Express vermittelt wurdest',
+  'tno.4':'Artikel von Personen, mit denen du nicht über EthioCarry vermittelt wurdest',
   'tno.5':'Mehr als den angebotenen Platz oder mehr, als deine Fluggesellschaft erlaubt',
   'tno.6':'Ersatzakkus oder Powerbanks im aufgegebenen Gepäck (nur im Handgepäck)',
   'tdo.1':'Prüfe jeden Artikel bei der Übergabe und lehne alles ab, bei dem du unsicher bist.',
@@ -737,3 +737,11 @@ Object.assign(window.JEBENA_I18N.en, { 'trip.eyebrow':'For travelers', 'trip.don
   'contact.qTitle':'Questions? We’re here to help', 'contact.qLead':'Need something carried, or traveling soon? Start at the top of the page. For anything else, email us.', 'contact.toTop':'Go to the search' });
 Object.assign(window.JEBENA_I18N.de, { 'trip.eyebrow':'Für Reisende', 'trip.doneTitle':'Deine Reise ist eingetragen',
   'contact.qTitle':'Fragen? Wir helfen gern', 'contact.qLead':'Du möchtest etwas transportieren lassen oder bist bald unterwegs? Starte oben auf der Seite. Für alles andere schreib uns eine E-Mail.', 'contact.toTop':'Zur Suche' });
+
+// ---------- 28 Nov 2026: clearer form errors ----------
+Object.assign(window.JEBENA_I18N.en, { 'err.missing':'Please fill in: {fields}.', 'send.f.ho':'Hand-over', 'send.f.pu':'Pickup', 'send.f.you':'Your details' });
+Object.assign(window.JEBENA_I18N.de, { 'err.missing':'Bitte ausfüllen: {fields}.', 'send.f.ho':'Übergabe', 'send.f.pu':'Abholung', 'send.f.you':'Deine Daten' });
+Object.assign(window.JEBENA_I18N.en, { 'ph.name':'e.g. Selam Tesfaye', 'ph.email':'e.g. selam@example.com', 'ph.phoneYou':'e.g. +1 301 555 0123', 'ph.phoneHo':'e.g. +49 151 2345678', 'ph.phonePu':'e.g. +251 911 234567' });
+Object.assign(window.JEBENA_I18N.de, { 'ph.name':'z. B. Selam Tesfaye', 'ph.email':'z. B. selam@example.com', 'ph.phoneYou':'z. B. +49 151 2345678', 'ph.phoneHo':'z. B. +49 151 2345678', 'ph.phonePu':'z. B. +251 911 234567' });
+Object.assign(window.JEBENA_I18N.en, { 'send.meNote':'Uses your name and phone from “Your contact details” above.' });
+Object.assign(window.JEBENA_I18N.de, { 'send.meNote':'Verwendet deinen Namen und deine Telefonnummer aus „Deine Kontaktdaten“ oben.' });

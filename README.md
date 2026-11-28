@@ -1,6 +1,6 @@
-# Jebena Express
+# EthioCarry
 
-Jebena Express matches people sending items between **Ethiopia and the diaspora** with travelers who have spare room in their luggage. The site is in English and German.
+EthioCarry matches people sending items between **Ethiopia and the diaspora** with travelers who have spare room in their luggage. The site is in English and German.
 
 It is a static website (HTML, CSS and JavaScript) that talks directly to **Supabase** for accounts and data. There is no server to run.
 
@@ -124,12 +124,12 @@ window.JEBENA_CONFIG = {
 
 1. **Authentication → Sign In / Providers → Email**: make sure it's enabled and **Confirm email** is on.
 2. **Authentication → Emails**: by default Supabase emails a link, but senders need the 6-digit code. Replace two templates with the ready-made bilingual (English and German) versions in `supabase/email-templates/`:
-   - **Magic Link**: paste `magic-link.html` as the body. Subject: `Your Jebena Express code: {{ .Token }}`
-   - **Confirm signup**: paste `confirm-signup.html` as the body (it has both the code and a link). Subject: `Confirm your Jebena Express account`
+   - **Magic Link**: paste `magic-link.html` as the body. Subject: `Your EthioCarry code: {{ .Token }}`
+   - **Confirm signup**: paste `confirm-signup.html` as the body (it has both the code and a link). Subject: `Confirm your EthioCarry account`
 
    Codes are valid for 1 hour, and a new one can be requested once a minute (Supabase defaults).
 3. **Authentication → URL Configuration**:
-   - **Site URL**: your live address, for example `https://jebena-express.pages.dev` (from step 7).
+   - **Site URL**: your live address, for example `https://ethiocarry.pages.dev` (from step 7).
    - **Redirect URLs**: add the same address, plus `http://localhost:8000/` for testing on your computer.
 4. **Before launch:** Supabase's built-in email sender only allows a handful of emails per hour and is meant for testing. Under **Authentication → Emails → SMTP Settings**, connect an email provider with a free tier (for example Resend or Brevo) so confirmation and reset emails always arrive.
 
@@ -167,7 +167,7 @@ Requesting an email code, password login, sign-up and password reset will then r
 1. In the Cloudflare dashboard, open **Workers & Pages → Create → Pages → Connect to Git**.
 2. Pick this GitHub repository.
 3. Build settings: **Framework preset: None**, **Build command:** leave empty, **Build output directory:** `/`.
-4. Click **Save and Deploy**. You'll get an address like `https://jebena-express.pages.dev`.
+4. Click **Save and Deploy**. You'll get an address like `https://ethiocarry.pages.dev`.
 5. Put that address into Supabase's **Site URL** and **Redirect URLs** (step 4).
 
 From now on, every push to GitHub updates the live site automatically.
@@ -212,8 +212,8 @@ npx supabase functions deploy notify --no-verify-jwt --project-ref YOUR-PROJECT-
 |---|---|
 | `NOTIFY_WEBHOOK_SECRET` | a long random string; generate one with `openssl rand -hex 32` |
 | `RESEND_API_KEY` | your Resend API key |
-| `EMAIL_FROM` | for example `Jebena Express <updates@yourdomain.com>` |
-| `SITE_URL` | your live site, for example `https://jebena-express.pages.dev` |
+| `EMAIL_FROM` | for example `EthioCarry <updates@yourdomain.com>` |
+| `SITE_URL` | your live site, for example `https://ethiocarry.pages.dev` |
 | `ADMIN_EMAIL` | your email: gets new-request alerts and customer replies |
 
 **e) Connect the database to the function.** Open `supabase/email-secrets.sql`, fill in your project ref and the **same** `NOTIFY_WEBHOOK_SECRET` value, and run it in the SQL Editor. Don't commit it with the real values.
@@ -245,6 +245,6 @@ Then open <http://localhost:8000>. Without `config.js` filled in, the site runs 
 - [ ] Email updates with a verified domain (step 8)
 - [ ] Privacy policy and terms of service pages (GDPR; have a lawyer review them)
 - [ ] Replace the example names and numbers in the hero (boarding pass, floating cards)
-- [ ] Replace `hello@jebenaexpress.example` with your real contact email
+- [ ] Replace `hello@ethiocarry.example` with your real contact email
 - [ ] Have a native German speaker review the German text
 - [ ] To delete a customer's data on request: **Authentication → Users → Delete user** (their requests are deleted with them)

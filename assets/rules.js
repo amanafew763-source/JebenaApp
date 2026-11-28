@@ -1,4 +1,4 @@
-// Jebena Express — the rules page (rules.html), opened in its own tab.
+// EthioCarry — the rules page (rules.html), opened in its own tab.
 (function(){
   'use strict';
   const I18N = window.JEBENA_I18N, RULES = window.JEBENA_RULES;

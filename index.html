@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Jebena Express</title>
+<title>EthioCarry</title>
 <meta name="description" content="Send items between Ethiopia and the diaspora with travelers who have spare room in their luggage.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,11 +14,11 @@
 <div class="tilet" aria-hidden="true"></div>
 <header class="topbar" id="topbar">
   <div class="wrap topbar-inner">
-    <a class="brand" href="#home" aria-label="Jebena Express home" data-i18n-aria="brand.aria">
+    <a class="brand" href="#home" aria-label="EthioCarry home" data-i18n-aria="brand.aria">
       <span class="brand-mark" aria-hidden="true">
         <svg viewBox="0 0 32 32"><circle cx="18" cy="21" r="8" fill="#fff"/><rect x="15.6" y="6" width="4.8" height="9" rx="2" fill="#fff"/><path d="M11.5 18 L5 11.5" stroke="#fff" stroke-width="3" stroke-linecap="round"/><rect x="14.6" y="4" width="6.8" height="3" rx="1.5" fill="#dca843"/></svg>
       </span>
-      <span class="brand-name">Jebena Express</span>
+      <span class="brand-name">EthioCarry</span>
     </a>
     <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="nav" aria-label="Open menu">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
@@ -47,7 +47,7 @@
         <div class="hero-copy">
           <span class="pill"><span class="geez" lang="am">ወደ ቤት</span><span data-i18n="hero.pill">Send it home</span></span>
           <h1 id="home-title" data-i18n-html="hero.title">Your package, in a suitcase <em>already going home.</em></h1>
-          <p class="lead" data-i18n="hero.lead">Jebena Express matches people sending items between Ethiopia and the diaspora with travelers who have spare room in their luggage. You agree on the fee up front, and the item is picked up in person.</p>
+          <p class="lead" data-i18n="hero.lead">EthioCarry matches people sending items between Ethiopia and the diaspora with travelers who have spare room in their luggage. You agree on the fee up front, and the item is picked up in person.</p>
 
           <form class="book" id="bookForm" novalidate>
             <div class="book-tabs" role="tablist" aria-label="I want to" data-i18n-aria="hero.tabsLabel">
@@ -103,7 +103,7 @@
           <div class="mesob-panel">
             <div class="pass">
               <div class="pass-top">
-                <div class="pass-head"><span>Jebena Express</span><span class="tag" data-i18n="pass.example">Example trip</span></div>
+                <div class="pass-head"><span>EthioCarry</span><span class="tag" data-i18n="pass.example">Example trip</span></div>
                 <div class="route">
                   <div><b>IAD</b><small>Washington Dulles</small></div>
                   <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" transform="rotate(90 12 12)"/></svg>
@@ -276,7 +276,7 @@
         <dl class="info-list">
           <dt data-i18n="info.routes">Routes</dt><dd data-i18n="info.routesVal">Ethiopia ⇄ the diaspora, both directions</dd>
           <dt data-i18n="info.response">Response</dt><dd data-i18n="info.responseVal">Within 1 business day</dd>
-          <dt data-i18n="info.questions">Questions</dt><dd><a class="inline-link" href="mailto:hello@jebenaexpress.example">hello@jebenaexpress.example</a></dd>
+          <dt data-i18n="info.questions">Questions</dt><dd><a class="inline-link" href="mailto:hello@ethiocarry.example">hello@ethiocarry.example</a></dd>
         </dl>
       </div>
     </div>
@@ -327,9 +327,9 @@
 
           <h4 class="form-sub" data-i18n="form.youSub">Your contact details</h4>
           <div class="three">
-            <label for="c-name"><span data-i18n="form.name">Name</span><input id="c-name" name="name" autocomplete="name" required placeholder="Selam Tesfaye"></label>
-            <label for="c-email"><span data-i18n="form.email">Email</span><input id="c-email" name="email" type="email" autocomplete="email" required placeholder="selam@example.com"></label>
-            <label for="c-phone"><span data-i18n="form.phone">Phone</span><input id="c-phone" name="phone" type="tel" autocomplete="tel" required placeholder="+1 301 555 0123"></label>
+            <label for="c-name"><span data-i18n="form.name">Name</span><input id="c-name" name="name" autocomplete="name" required placeholder="e.g. Selam Tesfaye" data-i18n-ph="ph.name"></label>
+            <label for="c-email"><span data-i18n="form.email">Email</span><input id="c-email" name="email" type="email" autocomplete="email" required placeholder="e.g. selam@example.com" data-i18n-ph="ph.email"></label>
+            <label for="c-phone"><span data-i18n="form.phone">Phone</span><input id="c-phone" name="phone" type="tel" autocomplete="tel" required placeholder="e.g. +1 301 555 0123" data-i18n-ph="ph.phoneYou"></label>
           </div>
           <label for="c-msg"><span data-i18n="form.msgTrip">Anything else about your trip?</span><textarea id="c-msg" name="message" required></textarea></label>
           <label class="check" for="c-agree"><input type="checkbox" id="c-agree" name="agree"><span id="agreeText"></span></label>
@@ -414,23 +414,25 @@
               </div>
               <span class="hint" data-i18n="send.readyHint">The traveler needs the item at least one day before the flight. The photo is only shown to them.</span>
               <label for="s-msg"><span data-i18n="form.msgItem">Describe the item</span><textarea id="s-msg" name="message"></textarea></label>
+              <h4 class="form-sub" data-i18n="form.youSub">Your contact details</h4>
+              <div class="three">
+                <label for="s-name"><span data-i18n="form.name">Name</span><input id="s-name" name="name" autocomplete="name" placeholder="e.g. Selam Tesfaye" data-i18n-ph="ph.name"></label>
+                <label for="s-email"><span data-i18n="form.email">Email</span><input id="s-email" name="email" type="email" autocomplete="email" placeholder="e.g. selam@example.com" data-i18n-ph="ph.email"></label>
+                <label for="s-phone"><span data-i18n="form.phone">Phone</span><input id="s-phone" name="phone" type="tel" autocomplete="tel" placeholder="e.g. +1 301 555 0123" data-i18n-ph="ph.phoneYou"></label>
+              </div>
               <h4 class="form-sub" id="hoSub">Who hands it over?</h4>
               <label class="check" for="s-ho-me"><input type="checkbox" id="s-ho-me"><span data-i18n="form.thatsMe">That's me</span></label>
+              <p class="hint me-note" id="s-ho-note" hidden data-i18n="send.meNote">Uses your name and phone from “Your contact details” above.</p>
               <div class="two">
                 <label for="s-ho-name"><span data-i18n="form.name">Name</span><input id="s-ho-name" name="hoName" autocomplete="off"></label>
-                <label for="s-ho-phone"><span data-i18n="form.phone">Phone</span><input id="s-ho-phone" name="hoPhone" type="tel" autocomplete="off" placeholder="+49 151 2345678"></label>
+                <label for="s-ho-phone"><span data-i18n="form.phone">Phone</span><input id="s-ho-phone" name="hoPhone" type="tel" autocomplete="off" placeholder="e.g. +49 151 2345678" data-i18n-ph="ph.phoneHo"></label>
               </div>
               <h4 class="form-sub" id="puSub">Who picks it up?</h4>
               <label class="check" for="s-pu-me"><input type="checkbox" id="s-pu-me"><span data-i18n="form.thatsMe">That's me</span></label>
+              <p class="hint me-note" id="s-pu-note" hidden data-i18n="send.meNote">Uses your name and phone from “Your contact details” above.</p>
               <div class="two">
                 <label for="s-pu-name"><span data-i18n="form.name">Name</span><input id="s-pu-name" name="puName" autocomplete="off"></label>
-                <label for="s-pu-phone"><span data-i18n="form.phone">Phone</span><input id="s-pu-phone" name="puPhone" type="tel" autocomplete="off" placeholder="+251 911 234567"></label>
-              </div>
-              <h4 class="form-sub" data-i18n="form.youSub">Your contact details</h4>
-              <div class="three">
-                <label for="s-name"><span data-i18n="form.name">Name</span><input id="s-name" name="name" autocomplete="name" placeholder="Selam Tesfaye"></label>
-                <label for="s-email"><span data-i18n="form.email">Email</span><input id="s-email" name="email" type="email" autocomplete="email" placeholder="selam@example.com"></label>
-                <label for="s-phone"><span data-i18n="form.phone">Phone</span><input id="s-phone" name="phone" type="tel" autocomplete="tel" placeholder="+1 301 555 0123"></label>
+                <label for="s-pu-phone"><span data-i18n="form.phone">Phone</span><input id="s-pu-phone" name="puPhone" type="tel" autocomplete="off" placeholder="e.g. +251 911 234567" data-i18n-ph="ph.phonePu"></label>
               </div>
               <label class="check" for="s-agree"><input type="checkbox" id="s-agree" name="agree"><span data-i18n-html="form.agree.sender"></span></label>
               <p class="note" id="sNeedAccount" hidden data-i18n="form.needAccount">You'll need a free account to send a request. What you type stays in the form while you log in.</p>
@@ -554,7 +556,7 @@
   <div class="tilet" aria-hidden="true"></div>
   <div class="wrap foot">
     <div>
-      <a class="brand" href="#home"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="18" cy="21" r="8" fill="#fff"/><rect x="15.6" y="6" width="4.8" height="9" rx="2" fill="#fff"/><path d="M11.5 18 L5 11.5" stroke="#fff" stroke-width="3" stroke-linecap="round"/><rect x="14.6" y="4" width="6.8" height="3" rx="1.5" fill="#dca843"/></svg></span><span class="brand-name">Jebena Express</span></a>
+      <a class="brand" href="#home"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="18" cy="21" r="8" fill="#fff"/><rect x="15.6" y="6" width="4.8" height="9" rx="2" fill="#fff"/><path d="M11.5 18 L5 11.5" stroke="#fff" stroke-width="3" stroke-linecap="round"/><rect x="14.6" y="4" width="6.8" height="3" rx="1.5" fill="#dca843"/></svg></span><span class="brand-name">EthioCarry</span></a>
       <small><span data-i18n="footer.tag">Carrying home, one suitcase at a time</span> · <span class="geez" lang="am">እንኳን ደህና መጡ</span> · <span data-i18n="footer.demo">Demo site</span></small>
     </div>
     <nav aria-label="Footer">

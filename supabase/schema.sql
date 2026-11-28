@@ -1,5 +1,5 @@
 -- =====================================================================
--- Jebena Express — database schema for Supabase (PostgreSQL)
+-- EthioCarry — database schema for Supabase (PostgreSQL)
 --
 -- Run this once on a fresh project: SQL Editor → New query → paste this
 -- whole file → Run.
