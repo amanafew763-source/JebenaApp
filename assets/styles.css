@@ -666,3 +666,7 @@ body.trip-mode main > :not(#tripWrap){display:none}
 input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="true"]{border-color:var(--danger-ink) !important;box-shadow:0 0 0 3px var(--danger-soft)}
 input[type=checkbox][aria-invalid="true"]{outline:2px solid var(--danger-ink);outline-offset:2px}
 input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7;font-style:italic}
+
+/* EthioCarry logo */
+.brand-logo{width:40px;height:40px;border-radius:10px;flex:none;display:block}
+footer .brand-logo{width:36px;height:36px}
