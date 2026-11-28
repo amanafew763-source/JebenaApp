@@ -745,3 +745,49 @@ Object.assign(window.JEBENA_I18N.en, { 'ph.name':'e.g. Selam Tesfaye', 'ph.email
 Object.assign(window.JEBENA_I18N.de, { 'ph.name':'z. B. Selam Tesfaye', 'ph.email':'z. B. selam@example.com', 'ph.phoneYou':'z. B. +49 151 2345678', 'ph.phoneHo':'z. B. +49 151 2345678', 'ph.phonePu':'z. B. +251 911 234567' });
 Object.assign(window.JEBENA_I18N.en, { 'send.meNote':'Uses your name and phone from “Your contact details” above.' });
 Object.assign(window.JEBENA_I18N.de, { 'send.meNote':'Verwendet deinen Namen und deine Telefonnummer aus „Deine Kontaktdaten“ oben.' });
+
+// ---------- 28 Nov 2026 (2): My matches and chat ----------
+Object.assign(window.JEBENA_I18N.en, {
+  'nav.matches':'My matches', 'mt.navAria':'My matches ({n} new)', 'mt.needLogin':'Log in to see your matches and chats.',
+  'mt.st.answer':'Waiting for your answer', 'mt.st.waiting':'Waiting for the traveler', 'mt.st.accepted':'Accepted',
+  'mt.st.declined':'Declined', 'mt.st.cancelled':'Cancelled',
+  'mt.youCarry':'You carry for {name}', 'mt.youSend':'You send with {name}', 'mt.flies':'flight {d}',
+  'mt.decideNote':'Accept to open the chat with the sender. Their item details are on the status page.',
+  'mt.openChat':'Open chat', 'mt.status':'Status page',
+  'mt.none':'No matches yet', 'mt.noneSub':'Search for a traveler, or list your trip. When someone is matched with you, they appear here.',
+  'mt.g.answer':'Needs an answer ({n})', 'mt.g.active':'Active ({n})', 'mt.g.past':'Past ({n})',
+  'chat.title':'Chat with {name}', 'chat.adminTitle':'{a} ↔ {b}', 'chat.photoAlt':'Photo in the chat',
+  'chat.seen':'Seen', 'chat.sent':'Sent', 'chat.back':'← My matches', 'chat.backAdmin':'← Dashboard',
+  'chat.notYet':'The chat opens once the traveler accepts.', 'chat.notFound':'This chat doesn’t exist, or you’re not part of it.',
+  'chat.closed':'This chat is closed. You can still read it.',
+  'chat.empty':'Say hello to {name} and agree where and when to hand the item over.',
+  'chat.emptyAdmin':'No messages yet.', 'chat.tooMany':'You’re sending messages very fast. Please wait a few minutes.',
+  'chat.err':'The message couldn’t be sent. Please try again.',
+  'chat.adminNone':'No chats yet.', 'chat.lastMsg':'last message {d}', 'chat.noMsgs':'no messages yet', 'chat.read':'Read chat',
+  'st.openChat':'Chat with {name}', 'st.viaChat':'via the chat',
+  'st.arrangeChat':'Agree on the hand-over with {name} in the chat before the flight.'
+});
+Object.assign(window.JEBENA_I18N.de, {
+  'nav.matches':'Meine Matches', 'mt.navAria':'Meine Matches ({n} neu)', 'mt.needLogin':'Melde dich an, um deine Matches und Chats zu sehen.',
+  'mt.eyebrow':'Deine Matches', 'mt.lead':'Alle, mit denen du schickst oder für die du etwas mitnimmst. Sobald Reisende zusagen, könnt ihr hier chatten.',
+  'mt.st.answer':'Wartet auf deine Antwort', 'mt.st.waiting':'Wartet auf die Reisenden', 'mt.st.accepted':'Zugesagt',
+  'mt.st.declined':'Abgelehnt', 'mt.st.cancelled':'Storniert',
+  'mt.youCarry':'Du nimmst etwas für {name} mit', 'mt.youSend':'Du schickst mit {name}', 'mt.flies':'Flug {d}',
+  'mt.decideNote':'Sag zu, um den Chat mit der absendenden Person zu öffnen. Details zum Artikel findest du auf der Statusseite.',
+  'mt.openChat':'Chat öffnen', 'mt.status':'Statusseite',
+  'mt.none':'Noch keine Matches', 'mt.noneSub':'Such nach Reisenden oder trag deine Reise ein. Sobald jemand mit dir gematcht wird, erscheint die Person hier.',
+  'mt.g.answer':'Antwort nötig ({n})', 'mt.g.active':'Aktiv ({n})', 'mt.g.past':'Vergangen ({n})',
+  'chat.title':'Chat mit {name}', 'chat.adminTitle':'{a} ↔ {b}', 'chat.photoAlt':'Foto im Chat',
+  'chat.seen':'Gelesen', 'chat.sent':'Gesendet', 'chat.back':'← Meine Matches', 'chat.backAdmin':'← Dashboard',
+  'chat.adminView':'Admin-Ansicht: Du kannst diesen Chat lesen, aber nicht darin schreiben.',
+  'chat.removePhoto':'Foto entfernen', 'chat.addPhoto':'Foto hinzufügen', 'chat.label':'Nachricht', 'chat.ph':'Nachricht schreiben…', 'chat.send':'Senden',
+  'chat.notYet':'Der Chat öffnet sich, sobald die Reisenden zusagen.', 'chat.notFound':'Diesen Chat gibt es nicht, oder du bist nicht Teil davon.',
+  'chat.closed':'Dieser Chat ist geschlossen. Du kannst ihn weiterhin lesen.',
+  'chat.empty':'Sag {name} Hallo und vereinbart, wo und wann der Artikel übergeben wird.',
+  'chat.emptyAdmin':'Noch keine Nachrichten.', 'chat.tooMany':'Du schreibst sehr schnell. Bitte warte ein paar Minuten.',
+  'chat.err':'Die Nachricht konnte nicht gesendet werden. Bitte versuch es noch einmal.',
+  'chat.adminCard':'Chats', 'chat.adminCardSub':'Alle Chats zwischen Absendenden und Reisenden, neueste zuerst. Nur du (Admin) und die beiden Personen können sie lesen.',
+  'chat.adminNone':'Noch keine Chats.', 'chat.lastMsg':'letzte Nachricht {d}', 'chat.noMsgs':'noch keine Nachrichten', 'chat.read':'Chat lesen',
+  'st.openChat':'Chat mit {name}', 'st.viaChat':'über den Chat',
+  'st.arrangeChat':'Vereinbart die Übergabe vor dem Flug im Chat mit {name}.'
+});

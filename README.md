@@ -77,6 +77,7 @@ Matching: a different city (a Jimma item on an Addis trip) is shown with a yello
 - `2026-11-22-cities.sql`: adds the Ethiopian city (existing requests become Addis Ababa).
 - `2026-11-22-find-traveler.sql`: adds "What will you carry?", the traveler search and picking a traveler. Trips posted before it don't appear in the search until the traveler edits them and ticks what they'll carry.
 - `2026-11-22-alerts.sql`: "Email me when a traveler matches" (run after the find-traveler update).
+- `2026-11-28-chat.sql`: My matches and the chat (run after the alerts update). It also stops showing account phone numbers and emails on the status pages.
 
 The rules (customer rules, prohibited items, customs, what travelers can't carry) live on their own page, `rules.html`, which the site opens in its own window (or a new tab if the browser blocks windows, and on phones). The customs rules themselves are in `assets/rules-data.js`.
 
@@ -90,6 +91,17 @@ Everyone who needs something carried starts in the top card on the home page:
 Anyone can search. Results show only a first name, rating, flight date, route and free space. If nobody fits, logged-in people can choose **"Email me when a traveler matches"**; the email function writes to them when a fitting trip is posted (at most once a day per alert). They manage alerts under **My account**.
 
 Travelers use the "I'm traveling" tab in the same top card, which opens a separate **List your trip** page (`#trip?...`). The **Contact** section only has the email address for questions. Travelers choose what they'll carry on each trip; the choice is remembered on their profile (**My account → What I'm willing to carry**).
+
+## My matches and chat
+
+- **My matches** (in the menu once logged in) lists everyone you send with or carry for. The red number counts matches waiting for your answer plus unread messages.
+- A traveler accepts or declines there. Accepting opens a chat between the two people; before that there is no chat.
+- Chats hold text (up to 1,000 characters) and photos (private bucket `chat-images`, shrunk before upload). New messages and "seen" ticks arrive live through Supabase Realtime.
+- Phone numbers and emails of the two account holders are never shown to each other. If someone else hands the item over or picks it up, the traveler still sees that person's phone.
+- A chat stays writable while the match is accepted and for 14 days after delivery or cancellation; after that it is read-only.
+- Admins can read every chat (Admin → Chats) but cannot write in them.
+- Database rules: only the two people and admins can read a chat, only the two people can write, at most 30 messages per 10 minutes.
+- With email set up (step 8), the other person gets an email about a new message, at most one every 15 minutes per chat.
 
 ## Setup
 

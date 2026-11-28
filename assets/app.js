@@ -65,9 +65,10 @@
   let user = null;            // Supabase auth user
   let hasPassword = false;    // senders may sign in with an email code only
   let profile = null;         // { full_name, is_admin }
-  let view = 'home';          // home | find | send | trip | account | admin | status
+  let view = 'home';          // home | find | send | trip | account | admin | status | matches | chat
   let statusId = null;        // request shown on the status page
   let pendingStatus = null;   // status page to open after logging in
+  let pendingRoute = null;    // #matches or #chat/ID to open after logging in
 
   // ---------- header & mobile menu ----------
   const nav = $('nav'), toggle = $('menuToggle'), topbar = $('topbar');
@@ -79,13 +80,16 @@
   function renderAuthButtons(){
     loginBtn.textContent = t(user ? 'nav.account' : 'nav.login');
     adminLink.hidden = !(profile && profile.is_admin);
+    $('matchesLink').hidden = !user;
+    if(!user) $('matchesBadge').hidden = true;
   }
   loginBtn.addEventListener('click', ()=>{ setMenu(false); if(user) location.hash = '#account'; else openAuth('code'); });
 
   // ---------- views & simple routing (#account, #r123) ----------
   function setView(v){
     if(v === 'admin' && !(profile && profile.is_admin)) v = 'home';
-    if((v === 'account' || v === 'status') && !user) v = 'home';
+    if(['account', 'status', 'matches', 'chat'].includes(v) && !user) v = 'home';
+    if(v !== 'chat' && view === 'chat') leaveChat();
     view = v;
     document.body.classList.toggle('admin-mode', v === 'admin');
     document.body.classList.toggle('account-mode', v === 'account');
@@ -93,6 +97,11 @@
     document.body.classList.toggle('find-mode', v === 'find');
     document.body.classList.toggle('send-mode', v === 'send');
     document.body.classList.toggle('trip-mode', v === 'trip');
+    document.body.classList.toggle('matches-mode', v === 'matches');
+    document.body.classList.toggle('chat-mode', v === 'chat');
+    $('matchesWrap').hidden = v !== 'matches';
+    $('chatWrap').hidden = v !== 'chat';
+    $('matchesLink').classList.toggle('active', v === 'matches' || v === 'chat');
     $('tripWrap').hidden = v !== 'trip';
     $('findWrap').hidden = v !== 'find';
     $('sendWrap').hidden = v !== 'send';
@@ -102,8 +111,10 @@
     adminLink.classList.toggle('active', v === 'admin');
     hideTip();
     if(v !== 'home') window.scrollTo(0, 0);
-    if(v === 'admin') renderDashboard();
+    if(v === 'admin'){ renderDashboard(); renderAdminChats(); }
     if(v === 'account') renderAccount();
+    if(v === 'matches') renderMatches();
+    if(user && v !== 'chat') refreshBadge();
     onScroll();
   }
   function route(){
@@ -113,6 +124,11 @@
       if(!sb) return;
       if(!user){ pendingStatus = id; openAuth('code', 'st.needLogin'); return; }
       statusId = id; setView('status'); renderStatus(id);
+    } else if(h === '#matches' || /^#chat\/\d+$/.test(h)){
+      if(!sb) return;
+      if(!user){ pendingRoute = h; openAuth('code', 'mt.needLogin'); return; }
+      if(h === '#matches') setView('matches');
+      else { setView('chat'); openChat(Number(h.slice(6))); }
     } else if(h === '#account'){
       if(user) setView('account'); else if(sb) openAuth('code');
     } else if(h.startsWith('#find')){
@@ -121,13 +137,13 @@
       setView('send'); renderSendPage(readFindHash());
     } else if(h.startsWith('#trip')){
       setView('trip'); openTripPage();
-    } else if(view === 'status' || view === 'account' || view === 'find' || view === 'send' || view === 'trip'){
+    } else if(['status', 'account', 'find', 'send', 'trip', 'matches', 'chat'].includes(view)){
       setView('home');
     }
   }
   window.addEventListener('hashchange', route);
   adminLink.addEventListener('click', e=>{ e.preventDefault(); setMenu(false); setView('admin'); });
-  document.querySelectorAll('a[href^="#"]:not(#adminLink):not([href="#account"]):not([href^="#find"]):not([href^="#send"]):not([href^="#trip"])').forEach(a=>a.addEventListener('click', ()=>{ if(view !== 'home') setView('home'); }));
+  document.querySelectorAll('a[href^="#"]:not(#adminLink):not([href="#account"]):not([href^="#find"]):not([href^="#send"]):not([href^="#trip"]):not([href="#matches"]):not([href^="#chat"])').forEach(a=>a.addEventListener('click', ()=>{ if(view !== 'home') setView('home'); }));
 
   // ---------- account dialog ----------
   // Senders: email code (no password). Travelers: password account.
@@ -301,10 +317,12 @@
       f.requestSubmit();   // finish sending what they started
     }
     if(event === 'SIGNED_IN' && pendingAlert && user){ const a = pendingAlert; pendingAlert = null; saveAlert(a.q, a.st, a.btn); }
+    if(event === 'SIGNED_IN' && pendingRoute && user){ pendingRoute = null; route(); }
+    if(user){ refreshBadge(); startBadgeTimer(); } else clearInterval(matchesTimer);
     if(event === 'SIGNED_IN' && pendingStatus && user){ const id = pendingStatus; pendingStatus = null; statusId = id; setView('status'); renderStatus(id); }
     if(!routedOnce){ routedOnce = true; route(); }
     if(view === 'account') user ? renderAccount() : setView('home');
-    if(view === 'status') user ? null : setView('home');
+    if(['status', 'matches', 'chat'].includes(view) && !user) setView('home');
     if(view === 'admin') (profile && profile.is_admin) ? renderDashboard() : setView('home');
   }
   if(sb){
@@ -315,7 +333,7 @@
   }
   async function logout(){
     if(sb) await sb.auth.signOut();
-    if(/^#(r\d+|account)$/.test(location.hash)) history.replaceState(null, '', location.pathname);
+    if(/^#(r\d+|account|matches|chat\/\d+)$/.test(location.hash)) history.replaceState(null, '', location.pathname);
     setView('home'); window.scrollTo({top:0, behavior: reduce?'auto':'smooth'});
   }
   $('logoutBtn2').addEventListener('click', logout);
@@ -1131,6 +1149,260 @@
     return c;
   }
 
+  // Button to a match's chat (status pages).
+  function chatButton(matchId, name){
+    const a = el('a', 'btn btn-primary btn-sm chat-btn'); a.href = '#chat/' + matchId;
+    a.textContent = t('st.openChat', {name: name || ''});
+    const w = el('div', 'actions'); w.appendChild(a); return w;
+  }
+
+  // ---------- My matches (#matches) ----------
+  let myMatches = [], matchesTimer = null;
+  async function loadMatches(all){
+    if(!sb || !user) return [];
+    const { data, error } = await sb.rpc('my_matches', { p_all: !!all });
+    return error ? null : (data || []);
+  }
+  // The red number next to "My matches": items waiting for your answer + unread messages.
+  async function refreshBadge(){
+    const link = $('matchesLink'), badge = $('matchesBadge');
+    link.hidden = !user;
+    if(!user){ badge.hidden = true; return; }
+    const rows = await loadMatches(false);
+    if(!rows) return;
+    myMatches = rows;
+    const n = rows.reduce((a, m) => a + (m.my_role === 'traveler' && m.status === 'proposed' ? 1 : 0) + (m.unread || 0), 0);
+    badge.textContent = n > 9 ? '9+' : String(n); badge.hidden = !n;
+    link.setAttribute('aria-label', n ? t('mt.navAria', {n}) : t('nav.matches'));
+  }
+  function startBadgeTimer(){
+    clearInterval(matchesTimer);
+    if(user) matchesTimer = setInterval(() => { if(document.visibilityState === 'visible') refreshBadge(); }, 60000);
+  }
+  const matchRoute = m => m.direction === 'from_addis' ? `${homeName(m.home_city)} → ${m.city}` : `${m.city} → ${homeName(m.home_city)}`;
+  function matchState(m){
+    if(m.status === 'proposed') return m.my_role === 'traveler' ? ['mt.st.answer', 'matched'] : ['mt.st.waiting', 'waiting'];
+    if(m.status === 'accepted') return m.handed_over ? ['st.it.carrying', 'handed_over'] : ['mt.st.accepted', 'accepted'];
+    if(m.status === 'completed') return ['st.it.done', 'delivered'];
+    if(m.status === 'declined') return ['mt.st.declined', 'cancelled'];
+    return ['mt.st.cancelled', 'cancelled'];
+  }
+  function matchCard(m){
+    const c = el('article', 'match-card');
+    const [stKey, chip] = matchState(m);
+    const who = t(m.my_role === 'traveler' ? 'mt.youCarry' : 'mt.youSend', {name: m.other_first_name});
+    c.innerHTML = `<div class="tc-head"><span class="tp-avatar" aria-hidden="true">${esc((m.other_first_name || '?').charAt(0).toUpperCase())}</span>
+        <div><b>${esc(who)}</b><span class="note">${esc(ratingText(m.other_rating))}</span></div>
+        <span class="chip ${chip}">${esc(t(stKey))}</span></div>
+      <div class="tc-route">${esc(matchRoute(m))}</div>
+      <div class="note">${esc([typeName(m.item_type), fmtKg(m.weight_kg), t('mt.flies', {d: fmtDay(m.flight_date)})].join(' · '))}</div>`;
+    const acts = el('div', 'actions');
+    if(m.my_role === 'traveler' && m.status === 'proposed'){
+      const yes = button('st.accept', 'btn-primary btn-sm');
+      yes.addEventListener('click', async () => { yes.disabled = true; const { error } = await sb.rpc('respond_match', { p_match_id: m.match_id, p_accept: true });
+        if(error){ yes.disabled = false; return; } location.hash = '#chat/' + m.match_id; });
+      const no = button('st.decline', 'btn-ghost btn-sm');
+      twoStep(no, 'st.declineConfirm', async () => { await sb.rpc('respond_match', { p_match_id: m.match_id, p_accept: false }); renderMatches(); });
+      acts.append(yes, no);
+      c.appendChild(el('p', 'note', esc(t('mt.decideNote'))));
+    }
+    if(m.can_chat){
+      const go = el('a', 'btn btn-primary btn-sm chat-btn'); go.href = '#chat/' + m.match_id;
+      go.innerHTML = `${esc(t('mt.openChat'))}${m.unread ? ` <span class="nav-badge">${m.unread}</span>` : ''}`;
+      acts.appendChild(go);
+    }
+    const st = el('a', 'btn btn-ghost btn-sm'); st.href = '#r' + (m.my_role === 'traveler' ? m.trip_request_id : m.item_request_id); st.textContent = t('mt.status');
+    acts.appendChild(st);
+    c.appendChild(acts);
+    return c;
+  }
+  async function renderMatches(){
+    const box = $('matchesBody');
+    box.innerHTML = `<p class="note">${esc(t('find.loading'))}</p>`;
+    const rows = await loadMatches(false);
+    if(rows === null){ box.innerHTML = `<p class="status err">${esc(t('acct.loadErr'))}</p>`; return; }
+    myMatches = rows; refreshBadge();
+    box.innerHTML = '';
+    if(!rows.length){
+      box.innerHTML = `<div class="find-empty"><h3>${esc(t('mt.none'))}</h3><p class="note">${esc(t('mt.noneSub'))}</p><a class="btn btn-primary" href="#home">${esc(t('contact.toTop'))}</a></div>`;
+      return;
+    }
+    const groups = [
+      ['mt.g.answer', rows.filter(m => m.status === 'proposed')],
+      ['mt.g.active', rows.filter(m => m.status === 'accepted')],
+      ['mt.g.past', rows.filter(m => !['proposed', 'accepted'].includes(m.status))]];
+    groups.forEach(([key, list]) => {
+      if(!list.length) return;
+      const g = el('div', 'find-group'); g.appendChild(el('h3', null, esc(t(key, {n: list.length}))));
+      const grid = el('div', 'trip-cards'); list.forEach(m => grid.appendChild(matchCard(m))); g.appendChild(grid);
+      box.appendChild(g);
+    });
+  }
+
+  // ---------- chat (#chat/ID) ----------
+  let chatId = null, chatInfo = null, chatChannel = null, chatBlob = null, chatOtherRead = null;
+  const chatImgUrls = new Map();
+  function leaveChat(){
+    if(chatChannel){ sb.removeChannel(chatChannel); chatChannel = null; }
+    chatId = null;
+  }
+  async function chatImageUrl(path){
+    if(chatImgUrls.has(path)) return chatImgUrls.get(path);
+    const { data } = await sb.storage.from('chat-images').createSignedUrl(path, 3600);
+    const u = data && data.signedUrl; if(u) chatImgUrls.set(path, u); return u;
+  }
+  const fmtTime = iso => new Date(iso).toLocaleString(LOC(), { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  function renderChatHead(m){
+    const [stKey, chip] = matchState(m), admin = m.my_role === 'admin';
+    const title = admin ? t('chat.adminTitle', {a: m.sender_name || '', b: m.traveler_name || ''}) : t('chat.title', {name: m.other_first_name});
+    $('chatHead').innerHTML = `<span class="tp-avatar" aria-hidden="true">${esc((admin ? 'A' : m.other_first_name || '?').charAt(0).toUpperCase())}</span>
+      <div class="ch-text"><h2 id="chat-title">${esc(title)}</h2>
+        <span class="note">${esc([typeName(m.item_type), fmtKg(m.weight_kg), matchRoute(m), t('mt.flies', {d: fmtDay(m.flight_date)})].join(' · '))}</span></div>
+      <span class="chip ${chip}">${esc(t(stKey))}</span>
+      <a class="btn btn-ghost btn-sm" href="#r${m.my_role === 'traveler' ? m.trip_request_id : m.item_request_id}">${esc(t('mt.status'))}</a>`;
+    if(admin) $('chatHead').lastElementChild.remove();
+  }
+  async function messageEl(msg){
+    const mine = msg.sender_id === (user && user.id);
+    const admin = chatInfo && chatInfo.my_role === 'admin';
+    const who = admin ? (msg.sender_id === chatInfo._senderUser ? chatInfo.sender_name : chatInfo.traveler_name) : null;
+    const b = el('div', 'msg' + (mine ? ' mine' : ''));
+    b.dataset.at = msg.created_at; b.dataset.id = msg.id;
+    if(msg.image_path){
+      const img = el('img', 'msg-img'); img.alt = t('chat.photoAlt'); img.loading = 'lazy';
+      const a = el('a'); a.target = '_blank'; a.rel = 'noopener'; a.appendChild(img); b.appendChild(a);
+      chatImageUrl(msg.image_path).then(u => { if(u){ img.src = u; a.href = u; } });
+    }
+    if(msg.body) b.appendChild(el('p', null, esc(msg.body)));
+    const meta = el('span', 'msg-meta', esc((who ? who + ' · ' : '') + fmtTime(msg.created_at)));
+    if(mine){ const tick = el('span', 'tick'); tick.setAttribute('aria-label', ''); meta.appendChild(tick); }
+    b.appendChild(meta);
+    return b;
+  }
+  // "Seen" ticks on my messages the other person has read.
+  function updateTicks(){
+    $('chatMsgs').querySelectorAll('.msg.mine').forEach(b => {
+      const seen = chatOtherRead && b.dataset.at <= chatOtherRead;
+      const tick = b.querySelector('.tick'); if(!tick) return;
+      tick.textContent = seen ? '✓✓' : '✓'; tick.classList.toggle('seen', !!seen);
+      tick.setAttribute('aria-label', t(seen ? 'chat.seen' : 'chat.sent'));
+    });
+  }
+  function scrollChat(){ const box = $('chatMsgs'); box.scrollTop = box.scrollHeight; }
+  async function appendMessage(msg){
+    const box = $('chatMsgs');
+    if(box.querySelector(`[data-id="${msg.id}"]`)) return;
+    const empty = box.querySelector('.chat-empty'); if(empty) empty.remove();
+    const nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 120;
+    box.appendChild(await messageEl(msg));
+    updateTicks();
+    if(nearBottom || msg.sender_id === user.id) scrollChat();
+    if(msg.sender_id !== user.id && chatInfo.my_role !== 'admin' && document.visibilityState === 'visible') sb.rpc('mark_chat_read', { p_match: chatId });
+  }
+  async function openChat(id){
+    leaveChat(); chatId = id;
+    const box = $('chatMsgs'); box.innerHTML = `<p class="note chat-empty">${esc(t('find.loading'))}</p>`;
+    $('chatHead').innerHTML = ''; $('chatErr').hidden = true;
+    const isAdmin = profile && profile.is_admin;
+    let rows = await loadMatches(false);
+    let m = rows && rows.find(x => x.match_id === id);
+    if(!m && isAdmin){ rows = await loadMatches(true); m = rows && rows.find(x => x.match_id === id); }
+    if(chatId !== id) return;
+    if(!m || !m.can_chat){
+      box.innerHTML = `<p class="note chat-empty">${esc(t(m ? 'chat.notYet' : 'chat.notFound'))}</p>`;
+      $('chatForm').hidden = true; $('chatClosed').hidden = true; $('chatAdmin').hidden = true;
+      if(m) renderChatHead(m);
+      return;
+    }
+    chatInfo = m;
+    renderChatHead(m);
+    const admin = m.my_role === 'admin';
+    $('chatAdmin').hidden = !admin;
+    $('chatBack').href = admin ? '#admin' : '#matches';
+    $('chatBack').textContent = t(admin ? 'chat.backAdmin' : 'chat.back');
+    $('chatForm').hidden = admin || !m.chat_open;
+    $('chatClosed').hidden = admin || m.chat_open;
+    $('chatClosed').textContent = t('chat.closed');
+    if(admin){
+      const { data } = await sb.from('requests').select('user_id').eq('id', m.item_request_id).maybeSingle();
+      m._senderUser = data && data.user_id;
+    }
+    chatOtherRead = m.other_last_read;
+    const { data, error } = await sb.from('messages').select('id, match_id, sender_id, body, image_path, created_at').eq('match_id', id).order('created_at', {ascending: true}).limit(500);
+    if(chatId !== id) return;
+    box.innerHTML = '';
+    if(error){ box.innerHTML = `<p class="status err">${esc(t('acct.loadErr'))}</p>`; return; }
+    if(!data.length) box.innerHTML = `<p class="note chat-empty">${esc(t(admin ? 'chat.emptyAdmin' : 'chat.empty', {name: m.other_first_name}))}</p>`;
+    for(const msg of data) box.appendChild(await messageEl(msg));
+    updateTicks(); scrollChat();
+    if(!admin){ await sb.rpc('mark_chat_read', { p_match: id }); refreshBadge(); }
+    // Live: new messages and the other person's "seen".
+    if(sb.channel){
+      chatChannel = sb.channel('chat-' + id)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `match_id=eq.${id}` }, p => { if(chatId === id) appendMessage(p.new); })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'match_reads', filter: `match_id=eq.${id}` }, p => {
+          if(chatId === id && p.new && p.new.user_id !== user.id){ chatOtherRead = p.new.last_read_at; updateTicks(); } })
+        .subscribe();
+    }
+    if(!admin && m.chat_open) setTimeout(() => $('chatInput').focus({preventScroll: true}), 50);
+  }
+  // Photo for the next message (shrunk like item photos).
+  $('chatFile').addEventListener('change', async e => {
+    const file = e.target.files[0]; e.target.value = '';
+    if(!file) return;
+    try{
+      chatBlob = await compressPhoto(file);
+      $('chatPreviewImg').src = URL.createObjectURL(chatBlob); $('chatPreview').hidden = false;
+    } catch(err){ chatBlob = null; $('chatErr').textContent = t('form.photoErr'); $('chatErr').hidden = false; }
+  });
+  $('chatPreviewX').addEventListener('click', () => { chatBlob = null; $('chatPreview').hidden = true; });
+  // Enter sends, Shift+Enter makes a new line; the box grows with the text.
+  $('chatInput').addEventListener('keydown', e => { if(e.key === 'Enter' && !e.shiftKey && !e.isComposing){ e.preventDefault(); $('chatForm').requestSubmit(); } });
+  $('chatInput').addEventListener('input', e => { e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px'; $('chatErr').hidden = true; });
+  $('chatForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const body = $('chatInput').value.trim(), id = chatId;
+    if(!id || (!body && !chatBlob)) return;
+    const btn = $('chatSend'); btn.disabled = true; $('chatErr').hidden = true;
+    try{
+      let image_path = null;
+      if(chatBlob){
+        image_path = `${id}/${(crypto.randomUUID && crypto.randomUUID()) || Date.now().toString(36)}.jpg`;
+        const { error: upErr } = await sb.storage.from('chat-images').upload(image_path, chatBlob, { contentType: 'image/jpeg', upsert: false });
+        if(upErr) throw Object.assign(new Error('photo_upload'), { cause: upErr });
+      }
+      const { data, error } = await sb.from('messages').insert({ match_id: id, body, image_path }).select('id, match_id, sender_id, body, image_path, created_at').single();
+      if(error) throw error;
+      $('chatInput').value = ''; $('chatInput').style.height = 'auto';
+      chatBlob = null; $('chatPreview').hidden = true;
+      await appendMessage(data);
+    } catch(err){
+      const msg = String((err && err.message) || '');
+      $('chatErr').textContent = t(msg.includes('chat_closed') ? 'chat.closed' : msg.includes('rate_limit') ? 'chat.tooMany' : msg === 'photo_upload' ? 'err.photoUpload' : 'chat.err');
+      $('chatErr').hidden = false;
+    } finally { btn.disabled = false; $('chatInput').focus({preventScroll: true}); }
+  });
+  document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState === 'visible' && view === 'chat' && chatId && chatInfo && chatInfo.my_role !== 'admin') sb.rpc('mark_chat_read', { p_match: chatId }).then(refreshBadge);
+  });
+
+  // Admin: all chats, newest activity first.
+  async function renderAdminChats(){
+    const box = $('adminChats'); if(!box) return;
+    const rows = await loadMatches(true);
+    if(!rows){ box.innerHTML = `<p class="note">${esc(t('acct.loadErr'))}</p>`; return; }
+    const list = rows.filter(m => m.can_chat);
+    if(!list.length){ box.innerHTML = `<p class="note">${esc(t('chat.adminNone'))}</p>`; return; }
+    box.innerHTML = '';
+    list.slice(0, 50).forEach(m => {
+      const row = el('div', 'my-item');
+      row.innerHTML = `<div><div class="mi-route">${esc((m.sender_name || '') + ' ↔ ' + (m.traveler_name || ''))}</div>
+        <div class="mi-meta">${esc([matchRoute(m), typeName(m.item_type), m.last_message_at ? t('chat.lastMsg', {d: fmtTime(m.last_message_at)}) : t('chat.noMsgs')].join(' · '))}</div></div>`;
+      const a = el('a', 'btn btn-ghost btn-sm'); a.href = '#chat/' + m.match_id; a.textContent = t('chat.read');
+      row.appendChild(a); box.appendChild(row);
+    });
+  }
+
   async function renderItemStatus(box, d){
     const r = d.request, m = d.match;
     r.__events = d.events;
@@ -1166,9 +1438,10 @@
     if(!m) cm.appendChild(el('p', 'note', esc(t(r.status === 'cancelled' ? 'st.noTraveler' : 'st.lookingForTraveler'))));
     else if(m.status === 'proposed') cm.appendChild(el('p', 'note', esc(t('st.proposed', {name: m.traveler_first_name, d: fmtDay(m.flight_date)}))));
     else {
-      cm.appendChild(kv([['st.name', esc(m.traveler_name)], ['form.phone', telLink(m.traveler_phone)], ['form.email', `<a href="mailto:${esc(m.traveler_email)}">${esc(m.traveler_email)}</a>`],
+      cm.appendChild(kv([['st.name', esc(m.traveler_name || m.traveler_first_name)],
         ['form.flight', esc(fmtDay(m.flight_date))], ['st.rating', esc(ratingText(m.traveler_rating))]]));
-      if(m.status === 'accepted' && r.status === 'accepted') cm.appendChild(el('p', 'note', esc(t('st.arrange', {name: m.traveler_first_name}))));
+      if(m.status === 'accepted' && r.status === 'accepted') cm.appendChild(el('p', 'note', esc(t('st.arrangeChat', {name: m.traveler_first_name}))));
+      cm.appendChild(chatButton(m.id, m.traveler_first_name));
     }
     right.appendChild(cm);
     if(m && m.status === 'completed' && !m.rated) right.appendChild(ratingCard(m.id, 'st.rate.whoTraveler', m.traveler_first_name));
@@ -1206,9 +1479,11 @@
         ['st.requester', esc(it.requester_name || it.requester_first_name) + ' · ' + esc(ratingText(it.requester_rating))]]));
       const itHome = homeName(it.home_city), places = it.direction === 'from_addis' ? {ho: itHome, pu: it.city} : {ho: it.city, pu: itHome};
       if(it.match_status !== 'proposed'){
-        body.appendChild(kv([['form.phone', telLink(it.requester_phone)], ['form.email', `<a href="mailto:${esc(it.requester_email)}">${esc(it.requester_email)}</a>`],
-          [t('st.hoIn', {place: places.ho}), `${esc(it.handover_name)} · ${telLink(it.handover_phone)}`],
-          [t('st.puIn', {place: places.pu}), `${esc(it.pickup_name)} · ${telLink(it.pickup_phone)}`]]));
+        // The sender is reached in the chat; a different hand-over/pickup person keeps their phone.
+        const who = (isSender, name, phone) => isSender || !phone ? `${esc(name || it.requester_first_name)} · ${esc(t('st.viaChat'))}` : `${esc(name)} · ${telLink(phone)}`;
+        body.appendChild(kv([[t('st.hoIn', {place: places.ho}), who(it.handover_is_sender, it.handover_name, it.handover_phone)],
+          [t('st.puIn', {place: places.pu}), who(it.pickup_is_sender, it.pickup_name, it.pickup_phone)]]));
+        body.appendChild(chatButton(it.match_id, it.requester_first_name));
       }
       const acts = el('div', 'actions');
       if(it.match_status === 'proposed'){

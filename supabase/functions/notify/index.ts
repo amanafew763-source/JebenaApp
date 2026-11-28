@@ -41,13 +41,15 @@ const TEXT = {
     button: 'Open the status page', hello: 'Hello {name},',
     footer: 'You’re getting this email because you used EthioCarry. Reply to this email if you have questions.',
     alert: ['A traveler for your {type}: {route}', '{name} is flying {route} on {date} and is willing to carry {type}. Open the search to see the details and send your item with them.'],
+    msg: ['New message from {name}', '{name} wrote to you about {route}:'], msgPhoto: '[Photo]', msgButton: 'Open the chat',
+    msgFooter: 'You’re getting this because someone wrote to you in an EthioCarry chat. We send at most one email per chat every 15 minutes.',
     alertButton: 'See travelers', alertHello: 'Hello,', alertOff: 'You asked us to email you when a traveler matches. You can delete this alert under My account.',
     types: { clothes: 'Clothes', medicine: 'Medicine', electronics: 'Electronics', documents: 'Documents', food: 'Food', other: 'Other' } as Record<string, string>,
     sender: {
       received: ['We got your request: {route}', 'Thanks for your request. We’ll look for a traveler on this route and email you at every step.'],
       waiting: ['We’re looking for a traveler: {route}', 'Your request is waiting for a traveler on this route. We’ll email you as soon as we find one.'],
-      matched: ['We found a traveler: {route}', 'We’ve proposed your item to a traveler on this route. As soon as they accept, you’ll get their contact details to arrange the handover.'],
-      accepted: ['The traveler accepted your item', 'Good news: the traveler accepted. Their name and phone number are on your status page so you can arrange the handover. Your pickup code is there too: give it to the person collecting the item.'],
+      matched: ['We found a traveler: {route}', 'We’ve proposed your item to a traveler on this route. As soon as they accept, you can chat with them in EthioCarry to arrange the handover.'],
+      accepted: ['The traveler accepted your item', 'Good news: the traveler accepted. Open the chat in EthioCarry (My matches) to arrange the handover. Your pickup code is on your status page: give it to the person collecting the item only when they have it.'],
       handed_over: ['Your item is with the traveler', 'The traveler has your item. At pickup, the recipient gives them the pickup code from your status page.'],
       delivered: ['Picked up: {route}', 'The item was picked up and the pickup code confirmed. Thank you for using EthioCarry. You can rate the traveler on your status page.'],
       cancelled: ['Request cancelled: {route}', 'This request has been cancelled. If that’s a mistake, reply to this email and we’ll sort it out.']
@@ -55,7 +57,7 @@ const TEXT = {
     traveler: {
       received: ['We got your trip: {route}', 'Thanks for offering space on your trip. We’ll email you when we have an item for you to accept or decline.'],
       cancelled: ['Trip cancelled: {route}', 'Your trip has been cancelled. If that’s a mistake, reply to this email.'],
-      match_proposed: ['New item for your trip: please accept or decline', 'Someone would like you to carry the item below. Open your status page to see its photo, then accept or decline. Contact details are shared only after you accept.'],
+      match_proposed: ['New item for your trip: please accept or decline', 'Someone would like you to carry the item below. Open your status page to see its photo, then accept or decline. Once you accept, you can chat with them in EthioCarry.'],
       match_cancelled: ['An item was removed from your trip', 'The item below is no longer on your trip, so you don’t need to carry it.']
     } as Record<string, [string, string]>
   },
@@ -65,13 +67,15 @@ const TEXT = {
     button: 'Statusseite öffnen', hello: 'Hallo {name},',
     footer: 'Du bekommst diese E-Mail, weil du EthioCarry nutzt. Antworte einfach auf diese E-Mail, wenn du Fragen hast.',
     alert: ['Reisende Person für deine {type}: {route}', '{name} fliegt am {date} {route} und nimmt {type} mit. Öffne die Suche, um die Details zu sehen und deinen Artikel mitzuschicken.'],
+    msg: ['Neue Nachricht von {name}', '{name} hat dir zu {route} geschrieben:'], msgPhoto: '[Foto]', msgButton: 'Chat öffnen',
+    msgFooter: 'Du bekommst diese E-Mail, weil dir jemand in einem EthioCarry-Chat geschrieben hat. Pro Chat schicken wir höchstens alle 15 Minuten eine E-Mail.',
     alertButton: 'Reisende ansehen', alertHello: 'Hallo,', alertOff: 'Du wolltest eine E-Mail, sobald eine reisende Person passt. Unter „Mein Konto“ kannst du diese Benachrichtigung löschen.',
     types: { clothes: 'Kleidung', medicine: 'Medikamente', electronics: 'Elektronik', documents: 'Dokumente', food: 'Lebensmittel', other: 'Sonstiges' } as Record<string, string>,
     sender: {
       received: ['Deine Anfrage ist eingegangen: {route}', 'Danke für deine Anfrage. Wir suchen eine reisende Person auf dieser Strecke und schicken dir bei jedem Schritt eine E-Mail.'],
       waiting: ['Wir suchen eine reisende Person: {route}', 'Deine Anfrage wartet auf eine reisende Person auf dieser Strecke. Wir melden uns, sobald wir jemanden gefunden haben.'],
-      matched: ['Wir haben eine reisende Person gefunden: {route}', 'Wir haben deinen Artikel einer reisenden Person vorgeschlagen. Sobald sie zusagt, bekommst du ihre Kontaktdaten, um die Übergabe zu vereinbaren.'],
-      accepted: ['Die reisende Person hat zugesagt', 'Gute Nachricht: Die reisende Person hat zugesagt. Name und Telefonnummer stehen auf deiner Statusseite, damit ihr die Übergabe vereinbaren könnt. Dort findest du auch den Abholcode: Gib ihn der Person, die den Artikel abholt.'],
+      matched: ['Wir haben eine reisende Person gefunden: {route}', 'Wir haben deinen Artikel einer reisenden Person vorgeschlagen. Sobald sie zusagt, könnt ihr in EthioCarry chatten und die Übergabe vereinbaren.'],
+      accepted: ['Die reisende Person hat zugesagt', 'Gute Nachricht: Die reisende Person hat zugesagt. Öffne den Chat in EthioCarry (Meine Matches), um die Übergabe zu vereinbaren. Deinen Abholcode findest du auf deiner Statusseite: Gib ihn der abholenden Person erst, wenn sie den Artikel hat.'],
       handed_over: ['Dein Artikel ist bei der reisenden Person', 'Die reisende Person hat deinen Artikel. Bei der Abholung nennt die empfangende Person den Abholcode von deiner Statusseite.'],
       delivered: ['Abgeholt: {route}', 'Der Artikel wurde abgeholt und der Abholcode bestätigt. Danke, dass du EthioCarry nutzt. Auf deiner Statusseite kannst du die reisende Person bewerten.'],
       cancelled: ['Anfrage storniert: {route}', 'Diese Anfrage wurde storniert. Falls das ein Irrtum ist, antworte auf diese E-Mail, und wir klären das.']
@@ -79,7 +83,7 @@ const TEXT = {
     traveler: {
       received: ['Deine Reise ist eingegangen: {route}', 'Danke, dass du Platz auf deiner Reise anbietest. Wir melden uns, sobald wir einen Artikel haben, den du annehmen oder ablehnen kannst.'],
       cancelled: ['Reise storniert: {route}', 'Deine Reise wurde storniert. Falls das ein Irrtum ist, antworte auf diese E-Mail.'],
-      match_proposed: ['Neuer Artikel für deine Reise: bitte annehmen oder ablehnen', 'Jemand möchte, dass du den Artikel unten mitnimmst. Auf deiner Statusseite siehst du das Foto und kannst annehmen oder ablehnen. Kontaktdaten werden erst nach deiner Zusage geteilt.'],
+      match_proposed: ['Neuer Artikel für deine Reise: bitte annehmen oder ablehnen', 'Jemand möchte, dass du den Artikel unten mitnimmst. Auf deiner Statusseite siehst du das Foto und kannst annehmen oder ablehnen. Sobald du zusagst, könnt ihr in EthioCarry chatten.'],
       match_cancelled: ['Ein Artikel wurde von deiner Reise entfernt', 'Der Artikel unten ist nicht mehr Teil deiner Reise. Du musst ihn nicht mitnehmen.']
     } as Record<string, [string, string]>
   }
@@ -131,7 +135,7 @@ function layout(o: { title: string; greeting: string; intro: string; rows: [stri
 <tr><td style="padding:28px 28px 8px"><div style="font-weight:800;font-size:18px;color:#0f7a55">EthioCarry</div>
 <h1 style="font-size:22px;line-height:1.25;color:#18140f;margin:18px 0 12px">${esc(o.title)}</h1>
 <p style="font-size:15px;line-height:1.55;color:#18140f;margin:0 0 6px">${esc(o.greeting)}</p>
-<p style="font-size:15px;line-height:1.55;color:#18140f;margin:0 0 16px">${esc(o.intro)}</p>
+<p style="font-size:15px;line-height:1.55;color:#18140f;margin:0 0 16px;white-space:pre-line">${esc(o.intro)}</p>
 <table role="presentation" cellpadding="0" cellspacing="0" style="border-top:1px solid #eee7dc;padding-top:8px;width:100%">${rows}</table>
 ${button}</td></tr>
 <tr><td style="padding:20px 28px 28px;font-size:12px;line-height:1.5;color:#8a7f73">${esc(o.footer)}</td></tr>
@@ -180,6 +184,17 @@ export function alertEmail(a: Alert, trip: Req, siteUrl: string): Mail {
   return { subject, html: layout(o), text: plain(o) };
 }
 
+// Email about a new chat message.
+export function messageEmail(to: Req, fromName: string, route: string, body: string, hasPhoto: boolean, matchId: number, siteUrl: string): Mail {
+  const lang = langOf(to), T = TEXT[lang], name = fromName.trim().split(/\s+/)[0];
+  const subject = fill(T.msg[0], { name });
+  const text = [body.trim().slice(0, 300) + (body.trim().length > 300 ? '…' : ''), hasPhoto ? T.msgPhoto : ''].filter(Boolean).join(' ');
+  const link = siteUrl ? `${siteUrl.replace(/\/$/, '')}/#chat/${matchId}` : '';
+  const o = { title: subject, greeting: fill(T.hello, { name: to.contact_name }), intro: fill(T.msg[1], { name, route }) + '\n\n“' + text + '”',
+    rows: [] as [string, string][], button: link ? [T.msgButton, link] as [string, string] : undefined, footer: T.msgFooter };
+  return { subject, html: layout(o), text: plain(o) };
+}
+
 export function adminEmail(r: Req, siteUrl: string): Mail {
   const route = routeOf(r, 'en');
   const what = r.role === 'traveler' ? 'trip' : 'item request';
@@ -214,7 +229,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
   if (!sameSecret(req.headers.get('x-webhook-secret') ?? '', env('NOTIFY_WEBHOOK_SECRET'))) return new Response('Unauthorized', { status: 401 });
 
-  let payload: { event?: string; request_id?: number; match_id?: number };
+  let payload: { event?: string; request_id?: number; match_id?: number; message_id?: number };
   try { payload = await req.json(); } catch { return new Response('Bad request', { status: 400 }); }
   const event = String(payload.event || '');
   const base = env('SUPABASE_URL'), key = serviceKey(env);
@@ -256,6 +271,29 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     // No "item removed" email when the traveler cancelled the whole trip themselves.
     if (!(event === 'match_cancelled' && trip.status === 'cancelled')) {
       jobs.push({ kind: event, to: trip.contact_email, requestId: trip.id, mail: travelerItemEmail(trip, item, event, siteUrl) });
+    }
+  } else if (event === 'message') {
+    const id = Number(payload.message_id);
+    if (!Number.isInteger(id)) return new Response('Bad request', { status: 400 });
+    const msgs = await get<{ id: number; match_id: number; sender_id: string; body: string; image_path: string | null }>(`messages?id=eq.${id}&select=id,match_id,sender_id,body,image_path`);
+    if (!msgs) return new Response('Could not load message', { status: 502 });
+    const msg = msgs[0];
+    if (!msg) return new Response('Not found', { status: 404 });
+    const ms = await get<Match>(`matches?id=eq.${msg.match_id}&select=id,status,sender_request_id,traveler_request_id`);
+    const m = ms && ms[0];
+    if (!m) return new Response('Not found', { status: 404 });
+    const rs = await get<Req & { user_id: string }>(`requests?id=in.(${m.sender_request_id},${m.traveler_request_id})&select=${REQ_COLS},user_id`);
+    if (!rs) return new Response('Could not load requests', { status: 502 });
+    const item = rs.find(r => r.id === m.sender_request_id), trip = rs.find(r => r.id === m.traveler_request_id);
+    if (!item || !trip) return new Response('Not found', { status: 404 });
+    const fromSender = msg.sender_id === item.user_id;
+    const to = fromSender ? trip : item, author = fromSender ? item : trip;
+    // At most one email per chat and person every 15 minutes.
+    const since = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+    const recent = await get<{ id: number }>(`notifications?kind=eq.message&request_id=eq.${to.id}&recipient=eq.${encodeURIComponent(to.contact_email)}&status=eq.sent&created_at=gt.${encodeURIComponent(since)}&select=id&limit=1`);
+    if (!recent || !recent.length) {
+      jobs.push({ kind: 'message', to: to.contact_email, requestId: to.id,
+        mail: messageEmail(to, author.contact_name, routeOf(item, langOf(to)), msg.body || '', !!msg.image_path, m.id, siteUrl) });
     }
   } else {
     return new Response('Bad request', { status: 400 });
